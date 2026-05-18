@@ -234,7 +234,7 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               className="w-100"
             >
-              <div className="landing-line mb-4"></div>
+              <div className="landing-line mb-3 mb-md-4"></div>
 
               <h1 className="landing-title">
                 60-Second <span>Challenge</span>
@@ -247,7 +247,7 @@ export default function LandingPage() {
               </p>
 
               {/* INFO CARDS */}
-              <div className="row g-3 mt-3 mt-md-4 mt-lg-5">
+              <div className="row g-2 g-md-3 mt-2 mt-md-3 mt-lg-4">
                 <div className="col-12">
                   <div className="info-card">
                     <div className="info-dot"></div>

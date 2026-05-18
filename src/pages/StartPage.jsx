@@ -292,7 +292,7 @@ export default function StartPage() {
 
             {/* Description */}
             <p
-              className="mb-5"
+              className="mb-3 mb-md-4 mb-lg-5"
               style={{
                 color: "#7a7a7a",
                 fontSize: "1.05rem",
@@ -307,7 +307,7 @@ export default function StartPage() {
             {/* FORM */}
             <form onSubmit={handleSubmit}>
 
-              <div className="row g-4">
+              <div className="row g-3 g-md-4">
 
                 {/* Full Name */}
                 <div className="col-12">
@@ -330,7 +330,7 @@ export default function StartPage() {
                     placeholder="Enter your full name"
                     className="form-control border-0 border-bottom rounded-0 shadow-none px-0"
                     style={{
-                      height: "58px",
+                      height: "clamp(44px, 5.5dvh, 58px)",
                       fontSize: "1.15rem",
                       background: "transparent",
                       borderBottom: "2px solid #dcdcdc",
@@ -366,7 +366,7 @@ export default function StartPage() {
                     placeholder="Company name"
                     className="form-control border-0 border-bottom rounded-0 shadow-none px-0"
                     style={{
-                      height: "58px",
+                      height: "clamp(44px, 5.5dvh, 58px)",
                       fontSize: "1.1rem",
                       background: "transparent",
                       borderBottom: "2px solid #dcdcdc",
@@ -402,7 +402,7 @@ export default function StartPage() {
                     placeholder="Your designation"
                     className="form-control border-0 border-bottom rounded-0 shadow-none px-0"
                     style={{
-                      height: "58px",
+                      height: "clamp(44px, 5.5dvh, 58px)",
                       fontSize: "1.1rem",
                       background: "transparent",
                       borderBottom: "2px solid #dcdcdc",
@@ -437,7 +437,7 @@ export default function StartPage() {
                     placeholder="Enter email address"
                     className="form-control border-0 border-bottom rounded-0 shadow-none px-0"
                     style={{
-                      height: "58px",
+                      height: "clamp(44px, 5.5dvh, 58px)",
                       fontSize: "1.1rem",
                       background: "transparent",
                       borderBottom: "2px solid #dcdcdc",
@@ -453,7 +453,7 @@ export default function StartPage() {
                 </div>
 
                 {/* Button */}
-                <div className="col-12 pt-4">
+                <div className="col-12 pt-2 pt-md-3 pt-lg-4">
                   <button
                     disabled={loading}
                     type="submit"
