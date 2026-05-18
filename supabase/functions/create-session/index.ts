@@ -60,7 +60,7 @@ serve(async (req) => {
           company,
           designation,
           email,
-          status: 'registered'
+          status: 'manual'
         })
         .select()
         .single()
