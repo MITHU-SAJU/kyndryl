@@ -98,8 +98,9 @@ export default function SectorPage() {
 
     return (
         <div
-            className="sector-page min-vh-100 position-relative overflow-hidden"
+            className="sector-page min-vh-100 position-relative overflow-x-hidden"
             style={{
+                minHeight: "100dvh",
                 background:
                     "linear-gradient(135deg, #f8f9fb 0%, #eef1f5 50%, #ffffff 100%)",
             }}
@@ -134,7 +135,7 @@ export default function SectorPage() {
             {/* MAIN CONTENT */}
             <div
                 className="container d-flex flex-column justify-content-center align-items-center"
-                style={{ minHeight: "85vh", position: "relative", zIndex: 5 }}
+                style={{ minHeight: "85dvh", position: "relative", zIndex: 5 }}
             >
                 {/* HEADING */}
                 <div className="text-center mb-5">

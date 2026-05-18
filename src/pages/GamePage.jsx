@@ -203,8 +203,8 @@ export default function GamePage() {
 
   return (
     <div
-      className="min-vh-100 d-flex flex-column position-relative overflow-hidden"
-      style={{ background: "#ffffff" }}
+      className="min-vh-100 d-flex flex-column position-relative overflow-x-hidden"
+      style={{ background: "#ffffff", minHeight: "100dvh" }}
     >
       {/* KYNDRYL ACCENT - TOP BAR */}
       <div
@@ -222,13 +222,13 @@ export default function GamePage() {
         }}
       />
 
-      <div className="container py-4 py-lg-5 d-flex flex-column justify-content-between min-vh-100 position-relative" style={{ zIndex: 2, maxWidth: '1400px' }}>
+      <div className="container py-3 py-md-4 py-lg-5 d-flex flex-column justify-content-between position-relative" style={{ zIndex: 2, maxWidth: '1400px', minHeight: '100dvh' }}>
 
         {/* TOP ROW: Title & Timer */}
         <div>
-          <div className="row align-items-center mb-4 mb-lg-5">
-            <div className="col-lg-8">
-              <div className="d-flex align-items-center gap-3 mb-4">
+          <div className="row align-items-center mb-3 mb-md-4 mb-lg-5">
+            <div className="col-md-8">
+              <div className="d-flex align-items-center gap-3 mb-3">
                 <div className="px-3 py-1 bg-light text-dark fw-bold text-uppercase tracking-widest border-start border-4 border-danger" style={{ fontSize: '0.7rem' }}>
                   CHALLENGE {currentIndex + 1} OF {questions.length}
                 </div>
@@ -237,9 +237,9 @@ export default function GamePage() {
               <motion.h2
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="mb-3"
+                className="mb-2"
                 style={{
-                  fontSize: "clamp(2rem, 4vw, 4rem)",
+                  fontSize: "clamp(1.8rem, 3.5vw, 3.5rem)",
                   fontWeight: "200",
                   color: "rgb(255, 77, 61)",
                   letterSpacing: "-2px",
@@ -252,22 +252,22 @@ export default function GamePage() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mb-0 text-secondary ps-4 border-start border-1 border-success"
-                style={{ fontSize: "clamp(1rem, 1.1vw, 1.15rem)", lineHeight: "1.7", maxWidth: "800px" }}
+                className="mb-0 text-secondary ps-3 border-start border-1 border-success"
+                style={{ fontSize: "clamp(0.9rem, 1.1vw, 1.15rem)", lineHeight: "1.6", maxWidth: "800px" }}
               >
                 {question.scenario}
               </motion.div>
             </div>
 
-            <div className="col-lg-4 d-flex justify-content-center justify-content-lg-end mt-4 mt-lg-0">
-              <div className="position-relative d-flex align-items-center justify-content-center bg-white shadow-sm border border-light" style={{ width: "140px", height: "140px", borderRadius: "20px" }}>
-                <svg width="120" height="120" viewBox="0 0 120 120" className="position-absolute">
+            <div className="col-md-4 d-flex justify-content-center justify-content-md-end mt-3 mt-md-0">
+              <div className="position-relative d-flex align-items-center justify-content-center bg-white shadow-sm border border-light" style={{ width: "120px", height: "120px", borderRadius: "20px" }}>
+                <svg width="100" height="100" viewBox="0 0 120 120" className="position-absolute">
                   <circle cx="60" cy="60" r="56" fill="none" stroke="#f8f8f8" strokeWidth="4" />
                   <circle cx="60" cy="60" r="56" fill="none" stroke="#ff4d3d" strokeWidth="4" strokeLinecap="square" strokeDasharray="351.8" strokeDashoffset={351.8 - (351.8 * timeLeft) / 60} transform="rotate(-90 60 60)" style={{ transition: "stroke-dashoffset 1s linear" }} />
                 </svg>
                 <div className="text-center">
-                  <div style={{ fontSize: "2.8rem", fontWeight: "900", color: "#111", lineHeight: 1 }}>{timeLeft}</div>
-                  <div className="text-uppercase tracking-widest text-danger fw-bold" style={{ fontSize: "0.55rem" }}>SECONDS</div>
+                  <div style={{ fontSize: "2.4rem", fontWeight: "900", color: "#111", lineHeight: 1 }}>{timeLeft}</div>
+                  <div className="text-uppercase tracking-widest text-danger fw-bold" style={{ fontSize: "0.5rem" }}>SECONDS</div>
                 </div>
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function GamePage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="d-grid d-grid-custom gap-4"
+              className="d-grid d-grid-custom gap-2 gap-md-3 gap-lg-4"
               style={{
                 gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
               }}
@@ -318,9 +318,8 @@ export default function GamePage() {
                     whileTap={{ scale: 0.98 }}
                     disabled={submitting}
                     onClick={() => handleToggleOption(option.option_key)}
-                    className="border-0 p-4 text-start position-relative d-flex flex-column justify-content-between transition-all"
+                    className="border-0 p-2 p-md-3 p-lg-4 text-start position-relative d-flex flex-column justify-content-between transition-all game-option-card"
                     style={{
-                      aspectRatio: "1 / 1.1",
                       background: isSelected ? "#ff4d3d" : "#ffffff",
                       color: isSelected ? "#ffffff" : "#111111",
                       borderRadius: "0px", // Kyndryl often uses sharp or very slightly rounded edges
@@ -328,24 +327,23 @@ export default function GamePage() {
                         ? "0 15px 35px rgba(255, 77, 61, 0.3)"
                         : "0 8px 20px rgba(0,0,0,0.04)",
                       border: isSelected ? "1px solid #ff4d3d" : "1px solid #eeeeee",
-                      minHeight: "240px"
                     }}
                   >
                     {/* Corner Number */}
-                    <div className={`fw-bold mb-4 ${isSelected ? 'text-white' : 'text-danger'}`} style={{ fontSize: "1.2rem", opacity: isSelected ? 1 : 0.4 }}>
+                    <div className={`fw-bold ${isSelected ? 'text-white' : 'text-danger'}`} style={{ fontSize: "clamp(0.8rem, 1.5vw, 1.25rem)", opacity: isSelected ? 1 : 0.4, marginBottom: "clamp(8px, 1.5vw, 20px)" }}>
                       {option.option_key}
                     </div>
 
                     {/* Option Text */}
-                    <div className="fw-bold mb-3" style={{ fontSize: "1.1rem", lineHeight: "1.3", letterSpacing: "-0.2px" }}>
+                    <div className="fw-bold mb-3 option-text" style={{ fontSize: "clamp(0.6rem, 1.2vw, 1.1rem)", lineHeight: "1.25", letterSpacing: "-0.2px" }}>
                       {option.option_text}
                     </div>
 
                     {/* Selection Indicator Pill */}
-                    <div className="mt-auto d-flex align-items-center justify-content-between">
-                      <div style={{ width: "30px", height: "2px", background: isSelected ? "#fff" : "#ff4d3d", opacity: 0.8 }} />
+                    <div className="mt-auto d-flex align-items-center justify-content-between w-100">
+                      <div style={{ width: "clamp(12px, 2.5vw, 30px)", height: "2px", background: isSelected ? "#fff" : "#ff4d3d", opacity: 0.8 }} />
                       {isSelected && (
-                        <div className="bg-white text-danger fw-black rounded-circle d-flex align-items-center justify-content-center shadow-sm" style={{ width: "22px", height: "22px", fontSize: "0.65rem" }}>
+                        <div className="bg-white text-danger fw-black rounded-circle d-flex align-items-center justify-content-center shadow-sm" style={{ width: "clamp(16px, 1.8vw, 22px)", height: "clamp(16px, 1.8vw, 22px)", fontSize: "clamp(0.5rem, 1vw, 0.65rem)" }}>
                           {order}
                         </div>
                       )}
@@ -358,7 +356,7 @@ export default function GamePage() {
         </div>
 
         {/* SUBMIT BUTTON ROW */}
-        <div className="mt-5 text-center">
+        <div className="mt-4 mt-md-5 text-center">
           <AnimatePresence>
             {selectedOptions.length > 0 && (
               <motion.button
@@ -369,12 +367,12 @@ export default function GamePage() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handleSubmit()}
                 disabled={submitting}
-                className="btn btn-danger py-3 px-5 border-0 shadow-lg d-inline-flex align-items-center gap-3"
+                className="btn btn-danger py-2 py-md-3 px-4 px-md-5 border-0 shadow-lg d-inline-flex align-items-center gap-3"
                 style={{
                   borderRadius: "0px",
                   fontWeight: "900",
                   letterSpacing: "2px",
-                  fontSize: "1rem",
+                  fontSize: "clamp(0.8rem, 1.2vw, 1rem)",
                   background: "#ff4d3d"
                 }}
               >
@@ -384,7 +382,7 @@ export default function GamePage() {
             )}
           </AnimatePresence>
 
-          <div className="mt-4 text-muted opacity-50 text-uppercase tracking-widest fw-bold" style={{ fontSize: "0.65rem" }}>
+          <div className="mt-3 text-muted opacity-50 text-uppercase tracking-widest fw-bold" style={{ fontSize: "0.6rem" }}>
             Identify your priorities and confirm to proceed
           </div>
         </div>
@@ -393,16 +391,17 @@ export default function GamePage() {
       {/* MOBILE RESPONSIVE STYLE OVERRIDE */}
       <style>{`
         .d-grid-custom {
-          grid-template-columns: repeat(5, 1fr);
+          grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
         }
-        @media (max-width: 1200px) {
-          .d-grid-custom { grid-template-columns: repeat(3, 1fr) !important; }
+        .game-option-card {
+          aspect-ratio: 1 / 1.15;
+          min-height: clamp(120px, 18vw, 240px);
         }
         @media (max-width: 768px) {
-          .d-grid-custom { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-        @media (max-width: 480px) {
-          .d-grid-custom { grid-template-columns: repeat(1, 1fr) !important; }
+          .game-option-card {
+            aspect-ratio: 1 / 1.25;
+            min-height: clamp(100px, 20vw, 140px);
+          }
         }
         .transition-all { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
       `}</style>

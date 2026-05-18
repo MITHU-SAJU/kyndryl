@@ -30,8 +30,9 @@ export default function ConsentPage() {
 
   return (
     <div
-      className="min-vh-100 position-relative overflow-hidden"
+      className="min-vh-100 position-relative overflow-x-hidden"
       style={{
+        minHeight: "100dvh",
         background: "#f4f4f4",
       }}
     >
@@ -84,7 +85,7 @@ export default function ConsentPage() {
         <div
           className="d-flex align-items-center justify-content-center"
           style={{
-            minHeight: "calc(100vh - 120px)",
+            minHeight: "calc(100dvh - 120px)",
           }}
         >
           <div
@@ -162,13 +163,13 @@ export default function ConsentPage() {
               </div>
 
               {/* BODY */}
-              <div className="p-4 p-lg-5 p-xl-6">
+              <div className="p-3 p-md-4 p-lg-5">
                 {/* DESCRIPTION */}
                 <p
-                  className="text-secondary mb-5"
+                  className="text-secondary mb-4"
                   style={{
-                    fontSize: "1.1rem",
-                    lineHeight: 1.9,
+                    fontSize: "clamp(0.9rem, 1.4vw, 1.1rem)",
+                    lineHeight: 1.8,
                     maxWidth: "1100px",
                   }}
                 >
@@ -185,13 +186,13 @@ export default function ConsentPage() {
                   privacy and protection laws.
                 </p>
                 {/* CONSENT POINTS */}
-                <div className="mb-5">
+                <div className="mb-4">
                   <ul
                     className="ps-3 mb-0"
                     style={{
-                      lineHeight: 2,
+                      lineHeight: 1.8,
                       color: "#333",
-                      fontSize: "1.05rem",
+                      fontSize: "clamp(0.85rem, 1.3vw, 1.05rem)",
                     }}
                   >
                     {[
@@ -206,7 +207,7 @@ export default function ConsentPage() {
                         transition={{
                           delay: 0.2 + index * 0.1,
                         }}
-                        className="mb-3"
+                        className="mb-2"
                         style={{
                           paddingLeft: "8px",
                         }}
@@ -218,11 +219,11 @@ export default function ConsentPage() {
                 </div>
 
                 {/* FOOTER ACTION */}
-                <div className="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-4">
+                <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
 
                   {/* CONSENT CHECKBOX */}
                   <div
-                    className="d-flex align-items-start gap-3 mb-4 p-4 rounded-4"
+                    className="d-flex align-items-start gap-3 mb-0 p-3 rounded-4 w-100"
                     style={{
                       background: "#fafafa",
                       border: "1px solid rgba(0,0,0,0.06)",
@@ -249,8 +250,8 @@ export default function ConsentPage() {
                       className="form-check-label text-dark"
                       style={{
                         cursor: "pointer",
-                        lineHeight: 1.8,
-                        fontSize: "1rem",
+                        lineHeight: 1.7,
+                        fontSize: "clamp(0.8rem, 1.2vw, 1rem)",
                       }}
                     >
                       I acknowledge and agree to the collection and processing

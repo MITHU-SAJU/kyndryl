@@ -165,16 +165,16 @@ export default function StartPage() {
   }
 
   return (
-    <div className="container-fluid min-vh-100 p-0 overflow-hidden">
-      <div className="row g-0 min-vh-100">
+    <div className="container-fluid min-vh-100 p-0 overflow-x-hidden" style={{ minHeight: "100dvh" }}>
+      <div className="row g-0 min-vh-100" style={{ minHeight: "100dvh" }}>
 
         {/* LEFT SIDE */}
         <div
-          className="col-lg-5 d-flex flex-column justify-content-center position-relative px-4 px-md-5 py-5 py-lg-0"
+          className="col-md-5 d-flex flex-column justify-content-center position-relative px-4 px-md-5 py-5 py-md-0"
           style={{
             background: "#f5f5f5",
             overflow: "hidden",
-            minHeight: "40vh",
+            minHeight: "40dvh",
           }}
         >
 
@@ -240,7 +240,7 @@ export default function StartPage() {
 
         {/* RIGHT SIDE FORM */}
         <div
-          className="col-lg-6 d-flex align-items-center justify-content-center"
+          className="col-md-7 d-flex align-items-center justify-content-center"
           style={{
             background: "#ffffff",
           }}
@@ -249,7 +249,7 @@ export default function StartPage() {
             className="w-100 d-flex flex-column justify-content-center px-4 px-md-5 py-5"
             style={{
               maxWidth: "720px",
-              minHeight: "60vh",
+              minHeight: "60dvh",
             }}
           >
 

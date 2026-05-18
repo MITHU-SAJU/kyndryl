@@ -123,7 +123,7 @@ export default function ResultPage() {
   const { user, result } = data;
 
   return (
-    <div className="result-page min-vh-100 position-relative overflow-hidden d-flex align-items-center py-4 py-lg-5">
+    <div className="result-page min-vh-100 position-relative overflow-x-hidden d-flex align-items-center py-4 py-lg-5" style={{ minHeight: "100dvh" }}>
 
       {/* CONFETTI */}
       <div className="confetti-container">
@@ -160,7 +160,7 @@ export default function ResultPage() {
         <div className="row g-4 align-items-stretch justify-content-center">
 
           {/* LEFT: Thank You Message */}
-          <div className="col-12 col-lg-8 col-xl-7">
+          <div className="col-12 col-md-10 col-lg-8 col-xl-7">
 
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -220,18 +220,18 @@ export default function ResultPage() {
         background: rgba(255,255,255,0.95);
         backdrop-filter: blur(10px);
         border-radius: 40px;
-        padding: 50px;
+        padding: clamp(20px, 4vw, 50px);
         box-shadow: 0 25px 70px rgba(0,0,0,0.07);
         border: 1px solid rgba(0,0,0,0.03);
       }
 
-      .result-tag, .leaderboard-tag { font-size: 0.8rem; font-weight: 800; letter-spacing: 3px; color: #ff4d3d; margin-bottom: 15px; text-transform: uppercase; }
-      .hurray-text { font-size: clamp(3rem, 8vw, 6rem); font-weight: 900; letter-spacing: -3px; line-height: 0.9; color: #222; }
-      .result-title { font-size: 2rem; color: #666; font-weight: 300; letter-spacing: -1px; }
+      .result-tag, .leaderboard-tag { font-size: clamp(0.7rem, 1.2vw, 0.8rem); font-weight: 800; letter-spacing: 3px; color: #ff4d3d; margin-bottom: clamp(10px, 1.5vw, 15px); text-transform: uppercase; }
+      .hurray-text { font-size: clamp(2.5rem, 6vw, 6rem); font-weight: 900; letter-spacing: -3px; line-height: 0.95; color: #222; }
+      .result-title { font-size: clamp(1.2rem, 3vw, 2rem); color: #666; font-weight: 300; letter-spacing: -1px; }
 
       .score-circle {
-        width: 240px;
-        height: 240px;
+        width: clamp(180px, 20vw, 240px);
+        height: clamp(180px, 20vw, 240px);
         border-radius: 50%;
         background: linear-gradient(135deg, #ff4d3d 0%, #ff1a1a 100%);
         display: flex;
@@ -240,21 +240,19 @@ export default function ResultPage() {
         color: white;
         box-shadow: 0 20px 50px rgba(255,77,61,0.3);
       }
-      .score-value { font-size: 6rem; font-weight: 900; line-height: 1; letter-spacing: -5px; }
-      .score-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 4px; }
+      .score-value { font-size: clamp(4rem, 8vw, 6rem); font-weight: 900; line-height: 1; letter-spacing: -5px; }
+      .score-label { font-size: clamp(0.65rem, 1vw, 0.8rem); font-weight: 700; letter-spacing: 4px; }
 
-      .dark-card { background: #222; color: white; border: none; padding: 35px; border-radius: 30px; }
-      .stat-card { padding: 35px; border-radius: 30px; border: 2px solid #eee; }
-      .stat-label { font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-      .stat-value { font-size: 4rem; font-weight: 900; line-height: 1; letter-spacing: -2px; }
-      .stat-sub { font-size: 0.9rem; opacity: 0.6; margin-top: 5px; }
+      .dark-card { background: #222; color: white; border: none; padding: clamp(20px, 3vw, 35px); border-radius: 30px; }
+      .stat-card { padding: clamp(20px, 3vw, 35px); border-radius: 30px; border: 2px solid #eee; }
+      .stat-label { font-size: clamp(0.65rem, 1vw, 0.75rem); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+      .stat-value { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; line-height: 1; letter-spacing: -2px; }
+      .stat-sub { font-size: clamp(0.75rem, 1.2vw, 0.9rem); opacity: 0.6; margin-top: 5px; }
 
-      .trophy-box { font-size: 3.5rem; background: #fff5f4; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 25px; border: 1px solid #ffebea; }
+      .trophy-box { font-size: clamp(2.5rem, 4vw, 3.5rem); background: #fff5f4; width: clamp(70px, 8vw, 100px); height: clamp(70px, 8vw, 100px); display: flex; align-items: center; justify-content: center; border-radius: 25px; border: 1px solid #ffebea; }
 
       @media (max-width: 991px) {
-        .result-left-card, .result-right-card { padding: 35px; border-radius: 30px; }
-        .score-circle { width: 180px; height: 180px; }
-        .score-value { font-size: 4.5rem; }
+        .result-left-card, .result-right-card { border-radius: 30px; }
       }
       `}</style>
     </div>

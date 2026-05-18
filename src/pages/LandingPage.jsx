@@ -206,7 +206,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-vh-100 d-flex flex-column overflow-hidden position-relative bg-light">
+    <div className="min-vh-100 d-flex flex-column overflow-x-hidden position-relative bg-light" style={{ minHeight: "100dvh" }}>
       {/* BACKGROUND GRID */}
       <div className="landing-grid"></div>
 
@@ -228,7 +228,7 @@ export default function LandingPage() {
         <div className="row g-0 h-100">
 
           {/* LEFT COLUMN - Content */}
-          <div className="col-lg-5 d-flex align-items-center p-4 p-lg-5">
+          <div className="col-md-5 d-flex align-items-center p-3 p-md-4 p-lg-5">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -247,7 +247,7 @@ export default function LandingPage() {
               </p>
 
               {/* INFO CARDS */}
-              <div className="row g-3 mt-5">
+              <div className="row g-3 mt-3 mt-md-4 mt-lg-5">
                 <div className="col-12">
                   <div className="info-card">
                     <div className="info-dot"></div>
@@ -271,7 +271,7 @@ export default function LandingPage() {
           </div>
 
           {/* RIGHT COLUMN - Camera */}
-          <div className="col-lg-7 d-flex align-items-center justify-content-center p-4 p-lg-5 bg-dark">
+          <div className="col-md-7 d-flex align-items-center justify-content-center p-3 p-md-4 p-lg-5 bg-dark">
             <motion.div
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
