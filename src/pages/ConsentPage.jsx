@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ShieldCheck,
-  CheckCircle2,
-  ArrowRight,
-} from "lucide-react";
-import KyndrylLogo from "../assets/kyndryl.png";
+
 
 export default function ConsentPage() {
   const { eventId } = useParams();
@@ -17,6 +12,76 @@ export default function ConsentPage() {
   };
 
   const [agreed, setAgreed] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // TTS Voice Synthesis Greeting
+  const speak = (text) => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+
+    try {
+      const performSpeech = (availableVoices) => {
+        synth.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        // Strictly prefer high-quality humanistic FEMALE voices
+        const preferredVoice = availableVoices.find(v => {
+          const name = v.name.toLowerCase();
+          return v.lang.startsWith("en") && (
+            name.includes("female") ||
+            name.includes("samantha") ||
+            name.includes("zira") ||
+            name.includes("aria") ||
+            name.includes("hazel") ||
+            name.includes("susan") ||
+            name.includes("victoria") ||
+            name.includes("tessa") ||
+            name.includes("moira") ||
+            (name.includes("google") && name.includes("english") && !name.includes("male"))
+          ) && !name.includes("male") && !name.includes("david") && !name.includes("mark") && !name.includes("george");
+        }) || availableVoices.find(v => v.lang.startsWith("en") && !v.name.toLowerCase().includes("male") && !v.name.toLowerCase().includes("david") && !v.name.toLowerCase().includes("mark"))
+           || availableVoices[0];
+
+        if (preferredVoice) utterance.voice = preferredVoice;
+        utterance.rate = 0.95;
+        utterance.pitch = 1.02;
+
+        synth.speak(utterance);
+      };
+
+      let voices = synth.getVoices();
+      if (voices.length > 0) {
+        performSpeech(voices);
+      } else {
+        // Wait for voices to load asynchronously
+        synth.onvoiceschanged = () => {
+          const updatedVoices = synth.getVoices();
+          performSpeech(updatedVoices);
+          synth.onvoiceschanged = null; // Clean up
+        };
+      }
+    } catch (e) {
+      console.error("Speech Synthesis Error:", e);
+    }
+  };
+
+  // Speak on welcome screen mount
+
+
+  // Handle click to transition from Welcome to Consent card
+  const handleWelcomeClick = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+
+    // 1. Speak welcome message immediately in a female voice
+    speak("Welcome to the sixty second C I O Challenge. Please review and agree to the consent policy to start your challenge.");
+
+    // 2. Wait exactly 3 seconds, then hide welcome screen and show consent card
+    setTimeout(() => {
+      setShowWelcome(false);
+    }, 3000);
+  };
 
   useEffect(() => {
     if (agreed) {
@@ -33,238 +98,543 @@ export default function ConsentPage() {
       className="min-vh-100 position-relative overflow-x-hidden"
       style={{
         minHeight: "100dvh",
-        background: "#f4f4f4",
+        background: showWelcome ? "#000000" : "#f4f4f4",
+        transition: "background 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
-      {/* BACKGROUND LINES */}
-      <div
-        className="position-absolute top-0 end-0 h-100 d-none d-lg-block opacity-10"
-        style={{
-          width: "420px",
-          zIndex: 0,
-        }}
-      >
-        {[...Array(14)].map((_, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              right: `${i * 28}px`,
-              top: "-10%",
-              width: "2px",
-              height: "130%",
-              background: "#ff4d3d",
-              transform: "skewX(-22deg)",
-            }}
-          />
-        ))}
-      </div>
-
-      {/* TOP NAVBAR */}
-      <div
-        className="container-fluid px-4 px-lg-5 py-4 position-relative"
-        style={{ zIndex: 20 }}
-      >
-        <motion.img
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          src={KyndrylLogo}
-          alt="Kyndryl"
-          style={{
-            width: "170px",
-            height: "auto",
-          }}
-        />
-      </div>
-
-      {/* MAIN CONTENT */}
-      <div
-        className="container-fluid px-4 px-lg-5 position-relative"
-        style={{ zIndex: 10 }}
-      >
+      {/* BACKGROUND DECORATIVE LINES (Only visible in Consent State) */}
+      {!showWelcome && (
         <div
-          className="d-flex align-items-center justify-content-center"
+          className="position-absolute top-0 end-0 h-100 d-none d-lg-block opacity-10"
           style={{
-            minHeight: "calc(100dvh - 120px)",
+            width: "420px",
+            zIndex: 0,
           }}
         >
-          <div
-            className="w-100"
+          {[...Array(14)].map((_, i) => (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                right: `${i * 28}px`,
+                top: "-10%",
+                width: "2px",
+                height: "130%",
+                background: "#ff4d3d",
+                transform: "skewX(-22deg)",
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* TOP NAVBAR (Only visible in Consent State) */}
+      {!showWelcome && (
+        <div
+          className="container-fluid px-4 px-lg-5 py-4 position-relative"
+          style={{ zIndex: 20 }}
+        >
+
+        </div>
+      )}
+
+      {/* FULLSCREEN ROBOT WELCOME SCREEN */}
+      {/* FULLSCREEN ROBOT WELCOME SCREEN */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+            onClick={handleWelcomeClick}
+            className="welcome-screen position-absolute top-0 start-0 w-100 h-100 overflow-hidden d-flex justify-content-center align-items-center"
             style={{
-              maxWidth: "1400px",
+              zIndex: 1000,
+              cursor: isTransitioning ? "default" : "pointer",
+              background:
+                "radial-gradient(circle at center, #120404 0%, #000 70%)",
             }}
           >
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-5 overflow-hidden shadow-lg"
+            {/* GLOW BACKGROUND */}
+            <div
               style={{
-                border: "1px solid rgba(0,0,0,0.06)",
+                position: "absolute",
+                width: "70vw",
+                height: "70vw",
+                borderRadius: "50%",
+                background: "rgba(255,77,61,0.08)",
+                filter: "blur(120px)",
+                animation: "pulseGlow 4s ease-in-out infinite",
+              }}
+            />
+
+            {/* INNER SCREEN AREA */}
+            <div
+              style={{
+                width: "92%",
+                height: "88%",
+                border: "2px solid rgba(255,77,61,0.18)",
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                overflow: "hidden",
+                boxShadow: `
+            inset 0 0 40px rgba(255,77,61,0.08),
+            0 0 60px rgba(255,77,61,0.08)
+          `,
               }}
             >
-              {/* TOP HEADER */}
+              {/* TOP CURVE */}
+
+
+              {/* EYES */}
               <div
-                className="px-4 px-lg-5 py-4 border-bottom"
+                className="d-flex justify-content-center align-items-center"
                 style={{
-                  background: "#fafafa",
+                  gap: "clamp(80px, 18vw, 220px)",
+                  marginTop: "8vh",
                 }}
               >
-                <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                {/* LEFT EYE */}
+                <div
+                  style={{
+                    width: "clamp(120px, 14vw, 220px)",
+                    height: "clamp(160px, 18vw, 260px)",
+                    border: "4px solid #ff4d3d",
+                    borderRadius: "50%",
+                    position: "relative",
+                    boxShadow: `
+                0 0 25px rgba(255,77,61,0.8),
+                inset 0 0 30px rgba(255,77,61,0.25)
+              `,
+                    animation: "blinkEyes 4s infinite",
+                  }}
+                >
+                  {/* PUPIL */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      width: "35%",
+                      height: "35%",
+                      borderRadius: "50%",
+                      background: "#ff4d3d",
+                      top: "32%",
+                      left: "32%",
+                      boxShadow: `
+                  0 0 25px #ff4d3d,
+                  0 0 60px rgba(255,77,61,0.9)
+                `,
+                      animation: "pulseGlow 2s infinite",
+                    }}
+                  />
+                </div>
 
-                  <div>
-                    <div
-                      className="text-uppercase fw-bold mb-3"
-                      style={{
-                        letterSpacing: "3px",
-                        fontSize: "1.5rem",
-                        color: "#ff4d3d",
-                      }}
-                    >
-                      Consent And Data Usage Acknowledgement
-                    </div>
-
-                    <div
-                      style={{
-                        width: "80px",
-                        height: "3px",
-                        background: "#ff4d3d",
-                      }}
-                    />
-                  </div>
-
-                  <div className="d-flex align-items-center gap-2">
-                    <div
-                      style={{
-                        width: "12px",
-                        height: "12px",
-                        borderRadius: "50%",
-                        background: "#ff4d3d",
-                      }}
-                    />
-                    <div
-                      style={{
-                        width: "12px",
-                        height: "12px",
-                        borderRadius: "50%",
-                        background: "#ffc107",
-                      }}
-                    />
-                    <div
-                      style={{
-                        width: "12px",
-                        height: "12px",
-                        borderRadius: "50%",
-                        background: "#28c76f",
-                      }}
-                    />
-                  </div>
+                {/* RIGHT EYE */}
+                <div
+                  style={{
+                    width: "clamp(120px, 14vw, 220px)",
+                    height: "clamp(160px, 18vw, 260px)",
+                    border: "4px solid #ff4d3d",
+                    borderRadius: "50%",
+                    position: "relative",
+                    boxShadow: `
+                0 0 25px rgba(255,77,61,0.8),
+                inset 0 0 30px rgba(255,77,61,0.25)
+              `,
+                    animation: "blinkEyes 4s infinite",
+                  }}
+                >
+                  {/* PUPIL */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      width: "35%",
+                      height: "35%",
+                      borderRadius: "50%",
+                      background: "#ff4d3d",
+                      top: "32%",
+                      left: "32%",
+                      boxShadow: `
+                  0 0 25px #ff4d3d,
+                  0 0 60px rgba(255,77,61,0.9)
+                `,
+                      animation: "pulseGlow 2s infinite",
+                    }}
+                  />
                 </div>
               </div>
 
-              {/* BODY */}
-              <div className="p-3 p-md-4 p-lg-5">
-                {/* DESCRIPTION */}
-                <p
-                  className="text-secondary mb-4"
+              {/* SMILE */}
+              <div
+                style={{
+                  marginTop: "8vh",
+                  width: "clamp(180px, 24vw, 340px)",
+                  height: "clamp(80px, 10vw, 140px)",
+                  borderBottom: "6px solid #ff4d3d",
+                  borderRadius: "0 0 300px 300px",
+                  filter: "drop-shadow(0 0 18px #ff4d3d)",
+                  animation: "smileGlow 2s ease-in-out infinite",
+                }}
+              />
+
+              {/* TOUCH TEXT */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "5%",
+                  color: isTransitioning ? "#ff9f43" : "#ff4d3d",
+                  letterSpacing: "4px",
+                  fontSize: "12px",
+                  fontWeight: 300,
+                  opacity: 0.8,
+                  textShadow: isTransitioning ? "0 0 15px #ff9f43" : "0 0 12px #ff4d3d",
+                  animation: "blinkText 1.5s infinite",
+                  transition: "all 0.4s ease",
+                }}
+              >
+                {isTransitioning ? "INITIALIZING CHALLENGE..." : "TOUCH TO CONTINUE"}
+              </div>
+            </div>
+
+            {/* ANIMATIONS */}
+            <style>
+              {`
+          @keyframes pulseGlow {
+            0%,100% {
+              transform: scale(1);
+              opacity: 0.7;
+            }
+            50% {
+              transform: scale(1.08);
+              opacity: 1;
+            }
+          }
+
+          @keyframes blinkGlow {
+            0%,100% {
+              opacity: 0.9;
+            }
+            50% {
+              opacity: 0.3;
+            }
+          }
+
+          @keyframes blinkEyes {
+            0%, 92%, 100% {
+              transform: scaleY(1);
+            }
+            95% {
+              transform: scaleY(0.08);
+            }
+          }
+
+          @keyframes smileGlow {
+            0%,100% {
+              opacity: 0.7;
+              transform: translateY(0px);
+            }
+            50% {
+              opacity: 1;
+              transform: translateY(4px);
+            }
+          }
+
+          @keyframes blinkText {
+            0%,100% {
+              opacity: 0.3;
+            }
+            50% {
+              opacity: 1;
+            }
+          }
+        `}
+            </style>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* CONSENT CARD FLOW */}
+      {!showWelcome && (
+        <div
+          className="container-fluid px-4 px-lg-5 position-relative"
+          style={{ zIndex: 10 }}
+        >
+          <div
+            className="d-flex align-items-center justify-content-center"
+            style={{
+              minHeight: "calc(100dvh - 120px)",
+            }}
+          >
+            <div
+              className="w-100"
+              style={{
+                maxWidth: "1400px",
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="bg-white rounded-5 overflow-hidden shadow-lg"
+                style={{
+                  border: "1px solid rgba(0,0,0,0.06)",
+                }}
+              >
+                {/* TOP HEADER */}
+                <div
+                  className="px-4 px-lg-5 py-4 border-bottom"
                   style={{
-                    fontSize: "clamp(0.9rem, 1.4vw, 1.1rem)",
-                    lineHeight: 1.8,
-                    maxWidth: "1100px",
+                    background: "#fafafa",
                   }}
                 >
-                  By continuing with this interaction, you consent
-                  to Kyndryl collecting and processing the
-                  information shared by you for the purposes of
-                  event engagement, business communication,
-                  follow-up conversations, marketing outreach,
-                  and sharing relevant insights, solutions,
-                  services, or event-related updates.<br></br>
-                  Your information may be securely stored and
-                  processed by Kyndryl and its authorized
-                  partners in accordance with applicable data
-                  privacy and protection laws.
-                </p>
-                {/* CONSENT POINTS */}
-                <div className="mb-4">
-                  <ul
-                    className="ps-3 mb-0"
-                    style={{
-                      lineHeight: 1.8,
-                      color: "#333",
-                      fontSize: "clamp(0.85rem, 1.3vw, 1.05rem)",
-                    }}
-                  >
-                    {[
-                      "The information shared by you is voluntary and accurate to the best of your knowledge",
-                      "You agree to be contacted by Kyndryl regarding relevant offerings, events, insights, and follow-up discussions",
-                      "You understand that you may opt out of communications at any time",
-                    ].map((item, index) => (
-                      <motion.li
-                        key={index}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          delay: 0.2 + index * 0.1,
-                        }}
-                        className="mb-2"
+                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                      <div
+                        className="text-uppercase fw-bold mb-3"
                         style={{
-                          paddingLeft: "8px",
+                          letterSpacing: "3px",
+                          fontSize: "1.5rem",
+                          color: "#ff4d3d",
                         }}
                       >
-                        {item}
-                      </motion.li>
-                    ))}
-                  </ul>
-                </div>
+                        Consent And Data Usage Acknowledgement
+                      </div>
 
-                {/* FOOTER ACTION */}
-                <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
-
-                  {/* CONSENT CHECKBOX */}
-                  <div
-                    className="d-flex align-items-start gap-3 mb-0 p-3 rounded-4 w-100"
-                    style={{
-                      background: "#fafafa",
-                      border: "1px solid rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    <div className="form-check m-0">
-                      <input
-                        type="checkbox"
-                        id="consentCheck"
-                        className="form-check-input"
-                        checked={agreed}
-                        onChange={(e) => setAgreed(e.target.checked)}
+                      <div
                         style={{
-                          width: "22px",
-                          height: "22px",
-                          cursor: "pointer",
-                          borderColor: "#ff4d3d",
+                          width: "80px",
+                          height: "3px",
+                          background: "#ff4d3d",
                         }}
                       />
                     </div>
 
-                    <label
-                      htmlFor="consentCheck"
-                      className="form-check-label text-dark"
-                      style={{
-                        cursor: "pointer",
-                        lineHeight: 1.7,
-                        fontSize: "clamp(0.8rem, 1.2vw, 1rem)",
-                      }}
-                    >
-                      I acknowledge and agree to the collection and processing
-                      of my information by Kyndryl for event participation,
-                      communication, and related engagement activities.
-                    </label>
+                    <div className="d-flex align-items-center gap-2">
+                      <div
+                        style={{
+                          width: "12px",
+                          height: "12px",
+                          borderRadius: "50%",
+                          background: "#ff4d3d",
+                        }}
+                      />
+                      <div
+                        style={{
+                          width: "12px",
+                          height: "12px",
+                          borderRadius: "50%",
+                          background: "#ffc107",
+                        }}
+                      />
+                      <div
+                        style={{
+                          width: "12px",
+                          height: "12px",
+                          borderRadius: "50%",
+                          background: "#28c76f",
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
+
+                {/* BODY */}
+                <div className="p-3 p-md-4 p-lg-5">
+                  {/* DESCRIPTION */}
+                  <p
+                    className="text-secondary mb-4"
+                    style={{
+                      fontSize: "clamp(0.9rem, 1.4vw, 1.1rem)",
+                      lineHeight: 1.8,
+                      maxWidth: "1100px",
+                    }}
+                  >
+                    By continuing with this interaction, you consent
+                    to Kyndryl collecting and processing the
+                    information shared by you for the purposes of
+                    event engagement, business communication,
+                    follow-up conversations, marketing outreach,
+                    and sharing relevant insights, solutions,
+                    services, or event-related updates.<br></br>
+                    Your information may be securely stored and
+                    processed by Kyndryl and its authorized
+                    partners in accordance with applicable data
+                    privacy and protection laws.
+                  </p>
+
+                  {/* CONSENT POINTS */}
+                  <div className="mb-4">
+                    <ul
+                      className="ps-3 mb-0"
+                      style={{
+                        lineHeight: 1.8,
+                        color: "#333",
+                        fontSize: "clamp(0.85rem, 1.3vw, 1.05rem)",
+                      }}
+                    >
+                      {[
+                        "The information shared by you is voluntary and accurate to the best of your knowledge",
+                        "You agree to be contacted by Kyndryl regarding relevant offerings, events, insights, and follow-up discussions",
+                        "You understand that you may opt out of communications at any time",
+                      ].map((item, index) => (
+                        <motion.li
+                          key={index}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            delay: 0.2 + index * 0.1,
+                          }}
+                          className="mb-2"
+                          style={{
+                            paddingLeft: "8px",
+                          }}
+                        >
+                          {item}
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* FOOTER ACTION */}
+                  <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                    {/* CONSENT CHECKBOX */}
+                    <div
+                      className="d-flex align-items-start gap-3 mb-0 p-3 rounded-4 w-100"
+                      style={{
+                        background: "#fafafa",
+                        border: "1px solid rgba(0,0,0,0.06)",
+                      }}
+                    >
+                      <div className="form-check m-0">
+                        <input
+                          type="checkbox"
+                          id="consentCheck"
+                          className="form-check-input"
+                          checked={agreed}
+                          onChange={(e) => setAgreed(e.target.checked)}
+                          style={{
+                            width: "22px",
+                            height: "22px",
+                            cursor: "pointer",
+                            borderColor: "#ff4d3d",
+                          }}
+                        />
+                      </div>
+
+                      <label
+                        htmlFor="consentCheck"
+                        className="form-check-label text-dark"
+                        style={{
+                          cursor: "pointer",
+                          lineHeight: 1.7,
+                          fontSize: "clamp(0.8rem, 1.2vw, 1rem)",
+                        }}
+                      >
+                        I acknowledge and agree to the collection and processing
+                        of my information by Kyndryl for event participation,
+                        communication, and related engagement activities.
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* FUTURISTIC ROBOT SCREEN STYLING */}
+      <style>{`
+        .welcome-screen {
+          background: radial-gradient(circle at center, #111424 0%, #000000 100%);
+          color: #ffffff;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          position: absolute;
+          inset: 0;
+          z-index: 1000;
+          cursor: pointer;
+          overflow: hidden;
+          min-height: 100vh;
+          min-height: 100dvh;
+        }
+
+        /* Tech Circles background */
+        .tech-bg-circle {
+          position: absolute;
+          border-radius: 50%;
+          border: 1px dashed rgba(255, 77, 61, 0.12);
+          animation: rotateClockwise 25s linear infinite;
+        }
+        .tech-bg-circle.size-1 { width: clamp(320px, 50vw, 500px); height: clamp(320px, 50vw, 500px); }
+        .tech-bg-circle.size-2 { width: clamp(500px, 75vw, 800px); height: clamp(500px, 75vw, 800px); border-color: rgba(255, 77, 61, 0.05); animation-direction: reverse; animation-duration: 45s; }
+
+        .logo-top {
+          position: absolute;
+          top: 5vh;
+        }
+        
+        .welcome-logo {
+          width: clamp(130px, 15vw, 180px);
+          height: auto;
+          filter: brightness(0) invert(1);
+        }
+
+        /* Blinking Animation */
+        @keyframes blinkEyes {
+          0%, 90%, 94%, 98%, 100% {
+            transform: scaleY(1);
+          }
+          92%, 96% {
+            transform: scaleY(0.08);
+          }
+        }
+
+        /* Speaking/Pulsing Animation for Mouth */
+        @keyframes speakMouth {
+          0%, 100% { transform: scaleX(1); }
+          50% { transform: scaleX(1.15) scaleY(1.1); }
+        }
+
+        @keyframes rotateClockwise {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        /* Pulsing touch text */
+        .touch-prompt {
+          font-size: clamp(0.7rem, 1.4vw, 0.95rem);
+          font-weight: 800;
+          letter-spacing: 4px;
+          color: rgba(255, 255, 255, 0.7);
+          animation: pulseText 2s infinite;
+          text-transform: uppercase;
+        }
+
+        @keyframes pulseText {
+          0%, 100% { opacity: 0.5; box-shadow: 0 0 20px rgba(255, 77, 61, 0.1); }
+          50% { opacity: 1; border-color: #ff4d3d; color: #ffffff; box-shadow: 0 0 35px rgba(255, 77, 61, 0.4); }
+        }
+
+        .pulsing-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #ff4d3d;
+          box-shadow: 0 0 10px #ff4d3d;
+          animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+          0%, 100% { transform: scale(1); opacity: 0.5; }
+          50% { transform: scale(1.4); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

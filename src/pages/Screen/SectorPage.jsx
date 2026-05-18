@@ -15,7 +15,7 @@ const sectors = [
     },
     {
         id: "mca",
-        name: "MCA",
+        name: "Manufacturing, Consumer goods & retailer, Aviation & Airports",
         icon: Factory,
         color: "#F5A623"
     },
@@ -29,25 +29,25 @@ export default function SectorPage() {
     const speak = (text) => {
         const synth = window.speechSynthesis;
         if (!synth) return;
-        
+
         const performSpeech = (availableVoices) => {
             synth.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-            
+
             const preferredVoice = availableVoices.find(v => {
                 const name = v.name.toLowerCase();
                 return v.lang.startsWith('en') && (
-                    name.includes('female') || 
-                    name.includes('samantha') || 
-                    name.includes('zira') || 
-                    name.includes('victoria') || 
-                    name.includes('tessa') || 
+                    name.includes('female') ||
+                    name.includes('samantha') ||
+                    name.includes('zira') ||
+                    name.includes('victoria') ||
+                    name.includes('tessa') ||
                     name.includes('moira') ||
                     (name.includes('google') && name.includes('english') && !name.includes('male'))
                 );
             }) || availableVoices.find(v => v.name.toLowerCase().includes('female'))
-               || availableVoices.find(v => v.lang.startsWith('en-US') && !v.name.toLowerCase().includes('male'))
-               || availableVoices[0];
+                || availableVoices.find(v => v.lang.startsWith('en-US') && !v.name.toLowerCase().includes('male'))
+                || availableVoices[0];
 
             if (preferredVoice) utterance.voice = preferredVoice;
             utterance.rate = 0.95;
