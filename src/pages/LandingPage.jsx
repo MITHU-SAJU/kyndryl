@@ -228,7 +228,7 @@ export default function LandingPage() {
         <div className="row g-0 h-100">
 
           {/* LEFT COLUMN - Content */}
-          <div className="col-md-5 d-flex align-items-center p-3 p-md-4 p-lg-5">
+          <div className="col-md-5 d-flex align-items-center p-3 p-md-4 p-lg-5 landing-left-col">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -271,7 +271,7 @@ export default function LandingPage() {
           </div>
 
           {/* RIGHT COLUMN - Camera */}
-          <div className="col-md-7 d-flex align-items-center justify-content-center p-3 p-md-4 p-lg-5 bg-dark">
+          <div className="col-md-7 d-flex align-items-center justify-content-center p-3 p-md-4 p-lg-5 bg-dark landing-right-col">
             <motion.div
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}

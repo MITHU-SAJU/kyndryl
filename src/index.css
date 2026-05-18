@@ -546,21 +546,136 @@ html, body, #root {
   max-width: 100vw;
   overflow-x: hidden;
 }
-
 /* Specific optimizations for tablet devices in both portrait & landscape modes */
 @media (min-width: 768px) and (max-width: 1180px) {
+  /* Set containers to strictly fit 100dvh without scroll on all tablets */
+  body, html, #root {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
   /* Reduce heavy container padding */
   .container, .container-fluid {
     padding-left: 20px !important;
     padding-right: 20px !important;
   }
-  
-  /* Landing page camera area adjustments */
+
+  /* Force rows and columns of LandingPage and StartPage to fit 100dvh strictly */
+  .row.g-0.min-vh-100, .row.g-0.h-100 {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  /* Force side-by-side columns to be exactly 100dvh and prevent any inner overflow */
+  .col-md-5, .col-md-7 {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  /* Left columns flexbox adjustments */
+  .landing-left-col, .col-md-5 {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding: clamp(1rem, 2.5vh, 2.5rem) !important;
+  }
+
+  /* Compact the StartPage Form spacing to fit without scroll */
+  .start-form-wrapper {
+    padding: clamp(1rem, 3.5vh, 3rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    height: 100% !important;
+  }
+
+  .start-form-wrapper .mb-4, .start-form-wrapper .mb-3 {
+    margin-bottom: clamp(0.5rem, 1.5vh, 1.25rem) !important;
+  }
+
+  .start-form-wrapper p.mb-3 {
+    margin-bottom: clamp(0.5rem, 1.5vh, 1rem) !important;
+    font-size: clamp(0.85rem, 1.2vh, 1rem) !important;
+    line-height: 1.5 !important;
+  }
+
+  .start-form-wrapper .row.g-3 {
+    --bs-gutter-y: clamp(0.5rem, 1.2vh, 1rem) !important;
+    --bs-gutter-x: clamp(0.5rem, 1.5vw, 1.5rem) !important;
+  }
+
+  .start-form-wrapper input {
+    height: clamp(38px, 4.2vh, 48px) !important;
+    font-size: clamp(0.9rem, 1.2vh, 1.05rem) !important;
+  }
+
+  .start-form-wrapper label {
+    margin-bottom: 2px !important;
+    font-size: clamp(0.7rem, 1vh, 0.8rem) !important;
+  }
+
+  .start-form-wrapper button[type="submit"] {
+    padding-top: clamp(0.5rem, 1.2vh, 1rem) !important;
+    padding-bottom: clamp(0.5rem, 1.2vh, 1rem) !important;
+    margin-top: 10px !important;
+    min-width: 180px !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Compact the LandingPage Spacing to fit without scroll */
+  .landing-left-col .landing-title {
+    font-size: clamp(2rem, 4vw, 3.2rem) !important;
+    margin-bottom: clamp(0.5rem, 1.5vh, 1rem) !important;
+    letter-spacing: -2px !important;
+  }
+
+  .landing-left-col .landing-subtitle {
+    font-size: clamp(0.85rem, 1.2vh, 1rem) !important;
+    line-height: 1.6 !important;
+    margin-bottom: clamp(0.75rem, 2vh, 1.5rem) !important;
+  }
+
+  .landing-left-col .info-card {
+    padding: clamp(0.5rem, 1.2vh, 0.8rem) clamp(0.75rem, 1.5vw, 1.2rem) !important;
+    font-size: clamp(0.8rem, 1.1vh, 0.95rem) !important;
+    border-radius: 12px !important;
+  }
+
+  /* Camera Container Adjustments */
+  .landing-right-col {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: clamp(1rem, 3vh, 3rem) !important;
+  }
+
   .camera-shell {
-    max-width: 500px !important;
+    max-width: clamp(380px, 45vw, 480px) !important;
+    border-radius: 20px !important;
     margin: auto;
   }
-  
+
+  .camera-wrapper {
+    aspect-ratio: 4/3 !important;
+    max-height: clamp(240px, 35vh, 320px) !important;
+  }
+
+  .camera-actions {
+    padding: clamp(0.75rem, 1.5vh, 1.25rem) !important;
+    gap: 0.75rem !important;
+  }
+
+  .capture-btn, .manual-btn {
+    padding: clamp(0.5rem, 1.2vh, 1rem) !important;
+    font-size: clamp(0.85rem, 1.2vh, 0.95rem) !important;
+    border-radius: 12px !important;
+  }
+
   /* Sector Selection Page adjustments */
   .sector-card {
     min-height: auto !important;

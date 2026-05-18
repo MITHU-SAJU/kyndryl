@@ -246,10 +246,9 @@ export default function StartPage() {
           }}
         >
           <div
-            className="w-100 d-flex flex-column justify-content-center px-4 px-md-5 py-5"
+            className="w-100 d-flex flex-column justify-content-center px-4 px-md-5 py-5 start-form-wrapper"
             style={{
               maxWidth: "720px",
-              minHeight: "60dvh",
             }}
           >
 
