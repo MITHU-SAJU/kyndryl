@@ -1,146 +1,110 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { supabase, callFunction } from '../lib/supabase'
-import { toast } from 'react-hot-toast'
-import KyndrylLogo from '../assets/kyndryl.png'
-import QRCodeModule from 'react-qr-code'
-const QRCode = QRCodeModule.default || QRCodeModule
-import Leaderboard from '../components/Leaderboard'
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import { supabase, callFunction } from "../lib/supabase";
+import { toast } from "react-hot-toast";
+import KyndrylLogo from "../assets/kyndryl.png";
+import QRCodeModule from "react-qr-code";
+const QRCode = QRCodeModule.default || QRCodeModule;
+
+import { speak, stopAllSpeech } from "../lib/tts";
 
 export default function StartPage() {
-  const [top10, setTop10] = useState([])
-  const { eventId } = useParams()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [loading, setLoading] = useState(false)
-  const [dataLoaded, setDataLoaded] = useState(false)
-  const [eventData, setEventData] = useState(null)
+  const [top10, setTop10] = useState([]);
+  const { eventId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [eventData, setEventData] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    company: '',
-    designation: '',
-    email: ''
-  })
+    name: "",
+    company: "",
+    designation: "",
+    email: "",
+  });
+
 
   useEffect(() => {
     if (location.state?.prefill) {
-      const { name, company, designation, email } = location.state.prefill
-      setFormData(prev => ({
+      const { name, company, designation, email } = location.state.prefill;
+      setFormData((prev) => ({
         ...prev,
         name: name || prev.name,
         company: company || prev.company,
         designation: designation || prev.designation,
-        email: email || prev.email
-      }))
+        email: email || prev.email,
+      }));
     }
-  }, [location.state])
+  }, [location.state]);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        setLoading(true)
+        setLoading(true);
         // Fetch Event Data
         const { data: eData, error: eError } = await supabase
-          .from('events')
-          .select('*')
-          .eq('event_code', eventId)
-          .eq('is_active', true)
-          .single()
+          .from("events")
+          .select("*")
+          .eq("event_code", eventId)
+          .eq("is_active", true)
+          .single();
 
         if (eError || !eData) {
-          console.error('Event error:', eError)
-          setEventData(null)
+          console.error("Event error:", eError);
+          setEventData(null);
         } else {
-          setEventData(eData)
+          setEventData(eData);
         }
       } catch (err) {
-        console.error('Fetch error:', err)
+        console.error("Fetch error:", err);
       } finally {
-        setLoading(false)
-        setDataLoaded(true)
+        setLoading(false);
+        setDataLoaded(true);
       }
     }
 
-    if (eventId) fetchData()
-  }, [eventId])
+    if (eventId) fetchData();
+  }, [eventId]);
 
-  const speak = (text) => {
-    const synth = window.speechSynthesis;
-    if (!synth) return;
-    
-    // Helper to perform actual speech
-    const performSpeech = (availableVoices) => {
-      synth.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Strictly prefer high-quality humanistic FEMALE voices
-      const preferredVoice = availableVoices.find(v => {
-        const name = v.name.toLowerCase();
-        return v.lang.startsWith('en') && (
-          name.includes('female') || 
-          name.includes('samantha') || 
-          name.includes('zira') || 
-          name.includes('victoria') || 
-          name.includes('tessa') || 
-          name.includes('moira') ||
-          (name.includes('google') && name.includes('english') && !name.includes('male'))
-        );
-      }) || availableVoices.find(v => v.name.toLowerCase().includes('female'))
-         || availableVoices.find(v => v.lang.startsWith('en-US') && !v.name.toLowerCase().includes('male'))
-         || availableVoices[0];
-
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      synth.speak(utterance);
+  useEffect(() => {
+    speak(" Start Your Challenge.");
+    return () => {
+      stopAllSpeech();
     };
-
-    let voices = synth.getVoices();
-    if (voices.length > 0) {
-      performSpeech(voices);
-    } else {
-      // Wait for voices to load
-      synth.onvoiceschanged = () => {
-        const updatedVoices = synth.getVoices();
-        performSpeech(updatedVoices);
-        synth.onvoiceschanged = null; // Clean up
-      };
-    }
-  };
+  }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.name || !formData.company) {
-      toast.error('Name and Company are required')
-      return
+      toast.error("Name and Company are required");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
-      const result = await callFunction('create-session', {
+      const result = await callFunction("create-session", {
         eventCode: eventId,
-        ...formData
-      })
+        ...formData,
+      });
 
       if (result.sessionId) {
-        speak(`Welcome ${formData.name}`);
         navigate(`/sector/${result.sessionId}`, {
-          state: { questions: result.questions }
-        })
+          state: { 
+            questions: result.questions,
+            userName: formData.name
+          },
+        });
       }
     } catch (error) {
-      console.error(error)
-      toast.error(error.message || 'Failed to start challenge')
+      console.error(error);
+      toast.error(error.message || "Failed to start challenge");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading && !dataLoaded) {
     return (
@@ -149,7 +113,7 @@ export default function StartPage() {
           <span className="visually-hidden">Loading...</span>
         </div>
       </div>
-    )
+    );
   }
 
   if (dataLoaded && !eventData) {
@@ -157,17 +121,26 @@ export default function StartPage() {
       <div className="d-flex align-items-center justify-content-center min-vh-100 p-4">
         <div className="text-center">
           <h1 className="display-4 fw-bold text-danger">Event Not Found</h1>
-          <p className="mt-2 text-muted">The event code you provided is invalid or the event has ended.</p>
-          <button onClick={() => navigate('/')} className="btn btn-outline-dark mt-4 rounded-pill px-4">Go Back</button>
+          <p className="mt-2 text-muted">
+            The event code you provided is invalid or the event has ended.
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="btn btn-outline-dark mt-4 rounded-pill px-4"
+          >
+            Go Back
+          </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="container-fluid min-vh-100 p-0 overflow-x-hidden" style={{ minHeight: "100dvh" }}>
+    <div
+      className="container-fluid min-vh-100 p-0 overflow-x-hidden"
+      style={{ minHeight: "100dvh" }}
+    >
       <div className="row g-0 min-vh-100" style={{ minHeight: "100dvh" }}>
-
         {/* LEFT SIDE */}
         <div
           className="col-md-5 d-flex flex-column justify-content-center position-relative px-4 px-md-5 py-5 py-md-0"
@@ -177,7 +150,6 @@ export default function StartPage() {
             minHeight: "40dvh",
           }}
         >
-
           {/* TOP LEFT LOGO */}
           <div
             className="position-absolute top-0 start-0 p-4 p-lg-5"
@@ -209,7 +181,6 @@ export default function StartPage() {
               CIO Challenge
             </h1>
           </div>
-
 
           {/* Decorative Pattern */}
           <div
@@ -251,11 +222,10 @@ export default function StartPage() {
               maxWidth: "720px",
             }}
           >
-
             {/* Back Button */}
-            <div className="mb-4">
+            <div className="mb-4 d-flex justify-content-between align-items-center">
               <button
-                onClick={() => navigate(`/start/${eventId}`)}
+                onClick={() => navigate(`/scan/${eventId}`)}
                 className="btn btn-link text-muted p-0 text-decoration-none small fw-bold"
               >
                 ← BACK TO SCANNER
@@ -305,9 +275,7 @@ export default function StartPage() {
 
             {/* FORM */}
             <form onSubmit={handleSubmit}>
-
               <div className="row g-3 g-md-4">
-
                 {/* Full Name */}
                 <div className="col-12">
                   <label
@@ -467,12 +435,9 @@ export default function StartPage() {
                       transition: "all 0.3s ease",
                     }}
                   >
-                    {loading
-                      ? "PREPARING..."
-                      : "START CHALLENGE"}
+                    {loading ? "PREPARING..." : "START CHALLENGE"}
                   </button>
                 </div>
-
               </div>
             </form>
 
@@ -490,11 +455,9 @@ export default function StartPage() {
                 <strong>Enterprise Leaders Network</strong>
               </p>
             </div> */}
-
           </div>
         </div>
-
       </div>
     </div>
-  )
+  );
 }

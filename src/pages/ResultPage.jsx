@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { callFunction } from "../lib/supabase";
 import { toast } from "react-hot-toast";
 import KyndrylLogo from "../assets/kyndryl.png";
-import { DoorOpen, ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { speak, stopAllSpeech } from "../lib/tts";
 
 export default function ResultPage() {
   const { sessionId } = useParams();
@@ -12,107 +13,10 @@ export default function ResultPage() {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
-  const [triggering, setTriggering] = useState(false);
-  const [showBackupButton, setShowBackupButton] = useState(false);
+  const confettiCanvasRef = useRef(null);
+  const paperStylesRef = useRef(null);
 
-  const hasSpoken = useRef(false);
-  const hasTriggeredDoor = useRef(false);
-
-  // 10 SECONDS DELAY FOR BACKUP BUTTON
-  useEffect(() => {
-    if (!loading) {
-      const timer = setTimeout(() => {
-        setShowBackupButton(true);
-      }, 10000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [loading]);
-
-  // SPEECH
-  const speak = (text) => {
-    const synth = window.speechSynthesis;
-
-    if (!synth) return;
-
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    utterance.rate = 0.95;
-    utterance.pitch = 1;
-
-    synth.cancel();
-    synth.speak(utterance);
-  };
-
-  // AUTOMATIC DOOR TRIGGER
-  const triggerDoorAuto = async () => {
-    if (hasTriggeredDoor.current) return;
-    hasTriggeredDoor.current = true;
-
-    const espIp = import.meta.env.VITE_ESP32_IP || "192.168.0.198";
-    const espUrl = espIp.startsWith("http") ? `${espIp}/open` : `http://${espIp}/open`;
-
-    // Setup abort controller for a 3-second timeout to avoid hanging the app if ESP32 is offline
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-    console.log(`[ESP32] Attempting to trigger Door at: ${espUrl}`);
-
-    try {
-      await fetch(espUrl, {
-        method: "GET",
-        mode: "no-cors", // Opaque request avoids CORS errors since we only need to trigger the endpoint
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-      console.log("[ESP32] Door Open Trigger Sent Successfully!");
-    } catch (espError) {
-      clearTimeout(timeoutId);
-      if (espError.name === "AbortError") {
-        console.warn(`[ESP32] Trigger Timeout (3s) at ${espUrl}. Device may be offline.`);
-      } else {
-        console.error(
-          `[ESP32] Trigger Failed at ${espUrl}. Error:`, espError,
-          "\n\nTroubleshooting steps:\n" +
-          "1. Verify that the ESP32 is powered on and connected to the same Wi-Fi network.\n" +
-          "2. Double check if the ESP32's current IP address matches the configuration.\n" +
-          "3. You can set the custom IP using VITE_ESP32_IP in your .env file."
-        );
-      }
-    }
-  };
-
-  // MANUAL BACKUP TRIGGER
-  const handleManualTrigger = async () => {
-    setTriggering(true);
-
-    const espIp = import.meta.env.VITE_ESP32_IP || "192.168.0.198";
-    const espUrl = espIp.startsWith("http") ? `${espIp}/open` : `http://${espIp}/open`;
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-    console.log(`[ESP32 Manual] Sending backup trigger to: ${espUrl}`);
-
-    try {
-      await fetch(espUrl, {
-        method: "GET",
-        mode: "no-cors",
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-      toast.success("Backup open signal sent!");
-      console.log("[ESP32 Manual] Backup Trigger Sent Successfully!");
-    } catch (espError) {
-      clearTimeout(timeoutId);
-      toast.error("Failed to trigger door. Check connection.");
-      console.error("[ESP32 Manual] Backup Trigger Failed:", espError);
-    } finally {
-      setTriggering(false);
-    }
-  };
+  // TTS removed — no unlock needed
 
   // FETCH RESULT ON LOAD
   useEffect(() => {
@@ -124,18 +28,10 @@ export default function ResultPage() {
 
         setData(result);
 
-        // Auto trigger door opening
-        await triggerDoorAuto();
-
-        // SPEAK
-        if (result?.user?.name && !hasSpoken.current) {
-          hasSpoken.current = true;
-
-          speak(
-            `Thank you ${result.user.name} for sharing your perspective`
-          );
+        // High quality ElevenLabs congratulatory TTS
+        if (result?.user?.username) {
+          speak(` Thank you, ${result.user.username}, for sharing your perspective and completing the 60-Second CIO Challenge.`);
         }
-
       } catch (error) {
         console.error(error);
         toast.error("Failed to load result");
@@ -145,7 +41,116 @@ export default function ResultPage() {
     }
 
     fetchResult();
+
+    return () => {
+      stopAllSpeech();
+    };
   }, [sessionId]);
+
+  // Prepare falling paper styles once
+  useEffect(() => {
+    if (!paperStylesRef.current) {
+      const colors = [
+        "#ff4d3d",
+        "#ffc107",
+        "#28c76f",
+        "#6f42c1",
+        "#00bcd4",
+        "#ff6f91",
+      ];
+      const styles = Array.from({ length: 28 }).map(() => {
+        const left = Math.random() * 100;
+        const delay = Math.random() * 1.5;
+        const duration = 5 + Math.random() * 6;
+        const size = 10 + Math.random() * 18;
+        const rotate = Math.random() * 360;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        return { left, delay, duration, size, rotate, color };
+      });
+      paperStylesRef.current = styles;
+    }
+  }, []);
+
+  // Launch confetti and automatically navigate back to the Consent Page after 5 seconds
+  useEffect(() => {
+    if (!loading && data) {
+      launchConfetti(confettiCanvasRef.current);
+
+      const autoNavigateTimer = setTimeout(() => {
+        navigate(`/start/${data.eventCode || "etcio2026"}`);
+      }, 10000);
+
+      return () => clearTimeout(autoNavigateTimer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, data]);
+
+  // Confetti implementation (simple canvas particle system)
+  function launchConfetti(canvas) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const dpi = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpi;
+    canvas.height = window.innerHeight * dpi;
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    ctx.scale(dpi, dpi);
+
+    const colors = [
+      "#ff4d3d",
+      "#ffc107",
+      "#28c76f",
+      "#6f42c1",
+      "#00bcd4",
+      "#ff6f91",
+    ];
+    const particles = [];
+    const count = 120;
+
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * window.innerWidth,
+        y: -20 - Math.random() * 200,
+        vx: (Math.random() - 0.5) * 6,
+        vy: 2 + Math.random() * 6,
+        size: 6 + Math.random() * 10,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        vr: (Math.random() - 0.5) * 8,
+      });
+    }
+
+    let rafId;
+    const start = performance.now();
+
+    function frame(now) {
+      const t = (now - start) / 1000;
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      for (let p of particles) {
+        p.vy += 0.08; // gravity
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rotation += p.vr;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.restore();
+      }
+
+      rafId = requestAnimationFrame(frame);
+    }
+
+    rafId = requestAnimationFrame(frame);
+
+    // stop after 5 seconds and clear
+    setTimeout(() => {
+      cancelAnimationFrame(rafId);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }, 5000);
+  }
 
   if (loading) {
     return (
@@ -172,16 +177,56 @@ export default function ResultPage() {
       className="container-fluid min-vh-100 p-0 overflow-hidden position-relative d-flex align-items-center justify-content-center"
       style={{
         background: "#ffffff",
-        minHeight: "100dvh"
+        minHeight: "100dvh",
       }}
     >
+      {/* Confetti Canvas (drawn via JS) */}
+      <canvas
+        ref={confettiCanvasRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 1050,
+        }}
+      />
+
+      {/* Falling paper pieces */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 1040,
+        }}
+      >
+        {paperStylesRef.current &&
+          paperStylesRef.current.map((s, idx) => (
+            <div
+              key={idx}
+              className="paper-piece"
+              style={{
+                left: `${s.left}%`,
+                width: `${s.size}px`,
+                height: `${s.size * 0.6}px`,
+                background: s.color,
+                transform: `rotate(${s.rotate}deg)`,
+                animationDelay: `${s.delay}s`,
+                animationDuration: `${s.duration}s`,
+              }}
+            />
+          ))}
+      </div>
       {/* Top Left Logo */}
-      <div className="position-absolute top-0 start-0 p-4 p-lg-5" style={{ zIndex: 20 }}>
+      <div
+        className="position-absolute top-0 start-0 p-4 p-lg-5"
+        style={{ zIndex: 20 }}
+      >
         <img
           src={KyndrylLogo}
           alt="Kyndryl Logo"
           className="img-fluid"
-          style={{ width: "160px" }}
+          style={{ width: "clamp(120px, 12vw, 220px)" }}
         />
       </div>
 
@@ -216,28 +261,50 @@ export default function ResultPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="position-relative z-2 text-center px-4"
-        style={{ maxWidth: "600px" }}
+        className="position-relative z-2 text-center px-4 result-card"
+        style={{ maxWidth: "clamp(420px, 60vw, 980px)" }}
       >
+        {/* Congratulations Overlay */}
+        <AnimatePresence>
+          {!loading && data && (
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.6, opacity: 0 }}
+              transition={{ duration: 0.6, ease: "backOut" }}
+              className="position-absolute top-0 start-50 translate-middle-x text-center"
+              style={{ zIndex: 1060, marginTop: "-4rem", width: "100%" }}
+            >
+              <div
+                style={{
+                  display: "inline-block",
+                  padding: "12px 26px",
+                  borderRadius: 9999,
+                  background: "linear-gradient(90deg,#ff4d3d,#ffc107)",
+                  boxShadow: "0 10px 40px rgba(0,0,0,0.12)",
+                  color: "#fff",
+                  fontWeight: 800,
+                  letterSpacing: "1px",
+                  fontSize: "clamp(1.4rem, 3vw, 2rem)",
+                }}
+              >
+                CONGRATULATIONS!
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* Animated Check Icon */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 15 }}
+          transition={{
+            delay: 0.2,
+            type: "spring",
+            stiffness: 200,
+            damping: 15,
+          }}
           className="mb-4 d-inline-block"
-        >
-          <div
-            className="d-flex align-items-center justify-content-center rounded-circle mx-auto"
-            style={{
-              width: "100px",
-              height: "100px",
-              background: "rgba(255, 77, 61, 0.1)",
-              border: "2px solid #ff4d3d"
-            }}
-          >
-            <CheckCircle size={48} color="#ff4d3d" />
-          </div>
-        </motion.div>
+        ></motion.div>
 
         {/* Heading */}
         <h1
@@ -259,7 +326,7 @@ export default function ResultPage() {
             letterSpacing: "-1.5px",
           }}
         >
-          {user.name}
+          {user.username}
         </h2>
 
         <p
@@ -267,72 +334,70 @@ export default function ResultPage() {
           style={{
             fontSize: "1.15rem",
             lineHeight: "1.7",
-            maxWidth: "480px"
+            maxWidth: "480px",
           }}
         >
-          Thank you for sharing your perspective and completing the 60-Second CIO Challenge. Your session has been successfully recorded.
+          for sharing your perspective and completing the 60-Second CIO
+          Challenge. Your session has been successfully recorded.
         </p>
 
-        {/* ACTION BUTTONS */}
-        <div className="d-flex flex-column align-items-center gap-3">
-          {/* Primary Action: Return to Home */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate(`/start/${data.eventCode || "etcio2026"}`)}
-            className="btn btn-lg rounded-pill px-5 py-3 fw-bold d-inline-flex align-items-center justify-content-center gap-2"
-            style={{
-              background: "#2b2b2b",
-              color: "#fff",
-              border: "none",
-              boxShadow: "0 8px 24px rgba(43, 43, 43, 0.15)",
-              fontSize: "1.1rem",
-              letterSpacing: "0.5px",
-              minWidth: "260px",
-              transition: "all 0.3s ease"
-            }}
-          >
-            RETURN TO HOME <ArrowRight size={18} />
-          </motion.button>
 
-          {/* Backup Action: Open Door (Appears after 10 seconds) */}
-          <AnimatePresence>
-            {showBackupButton && (
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="pt-2"
-              >
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleManualTrigger}
-                  disabled={triggering}
-                  className="btn btn-lg rounded-pill px-5 py-3 fw-bold d-inline-flex align-items-center justify-content-center gap-2"
-                  style={{
-                    background: triggering ? "#b3b3b3" : "#ff4d3d",
-                    color: "#fff",
-                    border: "none",
-                    boxShadow: "0 8px 24px rgba(255, 77, 61, 0.2)",
-                    fontSize: "1.1rem",
-                    letterSpacing: "0.5px",
-                    minWidth: "260px",
-                    transition: "all 0.3s ease"
-                  }}
-                >
-                  <DoorOpen size={20} />
-                  {triggering ? "OPENING DOOR..." : "OPEN DOOR (BACKUP)"}
-                </motion.button>
-                <div className="mt-2 text-muted text-uppercase fw-bold text-center" style={{ fontSize: "0.75rem", letterSpacing: "1px", color: "#8a8a8a" }}>
-                  *Click if the showcase door did not open automatically
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
       </motion.div>
+
+
+      {/* Styles for celebration effects */}
+      <style>{`
+        .paper-piece {
+          position: absolute;
+          top: -8vh;
+          border-radius: 3px;
+          opacity: 0.95;
+          transform-origin: center;
+          animation-name: paperFall, paperRotate;
+          animation-timing-function: linear;
+          animation-iteration-count: 1;
+          will-change: transform, opacity;
+        }
+
+        @keyframes paperFall {
+          0% { transform: translateY(-10vh) rotate(0deg); opacity: 0.95; }
+          80% { opacity: 0.95; }
+          100% { transform: translateY(110vh) rotate(360deg); opacity: 0.9; }
+        }
+
+        @keyframes paperRotate {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        /* iPad Pro / large tablet landscape tweaks */
+        @media (min-width: 1024px) and (orientation: landscape) {
+          .result-card {
+            padding-left: 3rem !important;
+            padding-right: 3rem !important;
+          }
+
+          .result-card h1 {
+            font-size: clamp(2.8rem, 4.5vw, 5rem) !important;
+          }
+
+          .result-card h2 {
+            font-size: clamp(2rem, 3.6vw, 3.8rem) !important;
+          }
+
+          .result-card p {
+            font-size: 1.18rem !important;
+            max-width: 700px;
+          }
+
+          .result-card .btn {
+            min-width: 360px !important;
+            font-size: 1.12rem !important;
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

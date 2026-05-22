@@ -35,20 +35,39 @@ serve(async (req) => {
       })
     }
 
-    // 2. Check if user already exists (by email or name+company)
-    let user;
-    let query = supabaseClient.from('users').select('*').eq('event_id', event.id);
-    
-    const filters = [];
-    if (email) filters.push(`email.eq.${email}`);
-    if (name && company) filters.push(`and(name.eq.${name},company.eq.${company})`);
-    
-    const { data: existingUser, error: findError } = filters.length > 0 
-      ? await query.or(filters.join(',')).maybeSingle()
-      : { data: null, error: null };
+    // 2. Check if user already exists (by email or username+company)
+    let user = null;
 
-    if (existingUser) {
-      user = existingUser
+    if (email) {
+      const { data: existingUserByEmail, error: emailError } = await supabaseClient
+        .from('users')
+        .select('*')
+        .eq('event_id', event.id)
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (emailError) throw emailError;
+      if (existingUserByEmail) {
+        user = existingUserByEmail;
+      }
+    }
+
+    if (!user && name && company) {
+      const { data: existingUserByNameComp, error: nameError } = await supabaseClient
+        .from('users')
+        .select('*')
+        .eq('event_id', event.id)
+        .eq('username', name)
+        .eq('company', company)
+        .maybeSingle();
+
+      if (nameError) throw nameError;
+      if (existingUserByNameComp) {
+        user = existingUserByNameComp;
+      }
+    }
+
+    if (user) {
       console.log('Reusing existing user:', user.id)
     } else {
       // Create new user
@@ -56,7 +75,7 @@ serve(async (req) => {
         .from('users')
         .insert({
           event_id: event.id,
-          name,
+          username: name,
           company,
           designation,
           email,

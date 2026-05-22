@@ -1,170 +1,129 @@
-import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { callFunction, callRPC } from '../lib/supabase'
-import { toast } from 'react-hot-toast'
+import { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { callFunction, callRPC } from "../lib/supabase";
+import { toast } from "react-hot-toast";
+import { speak, stopAllSpeech } from "../lib/tts";
 
 export default function GamePage() {
-  const { sessionId } = useParams()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const { sessionId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [questions, setQuestions] = useState(location.state?.questions || [])
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(60)
-  const [selectedOptions, setSelectedOptions] = useState([])
-  const [error, setError] = useState(null)
-  const timerRef = useRef(null)
-  const synthRef = useRef(window.speechSynthesis)
-
-  const speak = (text) => {
-    if (!synthRef.current) return;
-    
-    // Helper to perform actual speech
-    const performSpeech = (availableVoices) => {
-      synthRef.current.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Strictly prefer high-quality humanistic FEMALE voices
-      const preferredVoice = availableVoices.find(v => {
-        const name = v.name.toLowerCase();
-        return v.lang.startsWith('en') && (
-          name.includes('female') || 
-          name.includes('samantha') || 
-          name.includes('zira') || 
-          name.includes('victoria') || 
-          name.includes('tessa') || 
-          name.includes('moira') ||
-          (name.includes('google') && name.includes('english') && !name.includes('male'))
-        );
-      }) || availableVoices.find(v => v.name.toLowerCase().includes('female'))
-         || availableVoices.find(v => v.lang.startsWith('en-US') && !v.name.toLowerCase().includes('male'))
-         || availableVoices[0];
-
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      synthRef.current.speak(utterance);
-    };
-
-    let voices = synthRef.current.getVoices();
-    if (voices.length > 0) {
-      performSpeech(voices);
-    } else {
-      // Wait for voices to load
-      synthRef.current.onvoiceschanged = () => {
-        const updatedVoices = synthRef.current.getVoices();
-        performSpeech(updatedVoices);
-        synthRef.current.onvoiceschanged = null; // Clean up
-      };
-    }
-  };
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [questions, setQuestions] = useState(location.state?.questions || []);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [error, setError] = useState(null);
+  const timerRef = useRef(null);
 
   const fetchQuestions = async () => {
     if (questions.length > 0) {
-      setLoading(false)
-      startTimer()
-      return
+      setLoading(false);
+      startTimer();
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const data = await callFunction('get-all-session-questions', { sessionId })
+      const data = await callFunction("get-all-session-questions", {
+        sessionId,
+      });
       if (data.completed) {
-        navigate(`/result/${sessionId}`)
-        return
+        navigate(`/result/${sessionId}`);
+        return;
       }
-      setQuestions(data.questions)
-      setCurrentIndex(data.currentIndex || 0)
-      startTimer()
+      setQuestions(data.questions);
+      setCurrentIndex(data.currentIndex || 0);
+      startTimer();
     } catch (error) {
-      setError(error.message)
-      toast.error('Failed to load questions')
+      setError(error.message);
+      toast.error("Failed to load questions");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const startTimer = () => {
-    setTimeLeft(60)
-    if (timerRef.current) clearInterval(timerRef.current)
+    setTimeLeft(60);
+    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          clearInterval(timerRef.current)
-          autoSubmit()
-          return 0
+          clearInterval(timerRef.current);
+          autoSubmit();
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
-  }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const autoSubmit = () => {
     if (!submitting) {
-      handleSubmit(null, 60)
+      handleSubmit(null, 60);
     }
-  }
+  };
 
   const handleToggleOption = (optionKey) => {
     if (submitting) return;
 
-    setSelectedOptions(prev => {
+    setSelectedOptions((prev) => {
       if (prev.includes(optionKey)) {
-        return prev.filter(k => k !== optionKey);
+        return prev.filter((k) => k !== optionKey);
       }
       // Removed the limit of 2 selections
       return [...prev, optionKey].sort();
     });
-  }
+  };
 
   const handleSubmit = async (forceOptions, forceTime) => {
-    const finalOptions = forceOptions !== undefined ? forceOptions : selectedOptions;
-    if (submitting) return
+    const finalOptions =
+      forceOptions !== undefined ? forceOptions : selectedOptions;
+    if (submitting) return;
 
-    setSubmitting(true)
-    if (timerRef.current) clearInterval(timerRef.current)
+    setSubmitting(true);
+    if (timerRef.current) clearInterval(timerRef.current);
 
-    const currentQuestion = questions[currentIndex]
-    const responseTime = forceTime || (60 - timeLeft)
+    const currentQuestion = questions[currentIndex];
+    const responseTime = forceTime || 60 - timeLeft;
 
     try {
-      const result = await callRPC('submit_answer', {
+      const result = await callRPC("submit_answer", {
         p_session_id: sessionId,
         p_question_id: currentQuestion.id,
-        p_selected_option: (finalOptions && finalOptions.length > 0) ? finalOptions.join(',') : null,
-        p_response_time: responseTime
-      })
+        p_selected_option:
+          finalOptions && finalOptions.length > 0
+            ? finalOptions.join(",")
+            : null,
+        p_response_time: responseTime,
+      });
 
       if (result.redirectToResult) {
-        navigate(`/result/${sessionId}`)
+        navigate(`/result/${sessionId}`);
       } else {
-        setCurrentIndex(prev => prev + 1)
-        setSelectedOptions([])
-        setSubmitting(false)
-        startTimer()
+        setCurrentIndex((prev) => prev + 1);
+        setSelectedOptions([]);
+        setSubmitting(false);
+        startTimer();
       }
-
     } catch (error) {
-      toast.error('Submission failed')
-      setSubmitting(false)
+      toast.error("Submission failed");
+      setSubmitting(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchQuestions()
+    fetchQuestions();
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-      if (synthRef.current) synthRef.current.cancel()
-    }
-  }, [sessionId])
+      if (timerRef.current) clearInterval(timerRef.current);
+      stopAllSpeech();
+    };
+  }, [sessionId]);
 
-  const question = questions[currentIndex]
+  const question = questions[currentIndex];
 
   useEffect(() => {
     if (question && !loading) {
@@ -178,29 +137,42 @@ export default function GamePage() {
   if (loading && !question) {
     return (
       <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 bg-white">
-        <div className="spinner-border text-danger mb-3" role="status" style={{ width: '3rem', height: '3rem' }}></div>
-        <div className="text-muted fw-bold text-uppercase tracking-widest small">Loading Challenge...</div>
+        <div
+          className="spinner-border text-danger mb-3"
+          role="status"
+          style={{ width: "3rem", height: "3rem" }}
+        ></div>
+        <div className="text-muted fw-bold text-uppercase tracking-widest small">
+          Loading Challenge...
+        </div>
       </div>
-    )
+    );
   }
 
   if (error || !question) {
     return (
       <div className="container min-vh-100 d-flex flex-column align-items-center justify-content-center text-center p-4">
-        <div className="card card-enterprise p-5 shadow-sm border-0" style={{ maxWidth: '450px' }}>
-          <div className="text-danger mb-4" style={{ fontSize: '4rem' }}>⚠️</div>
+        <div
+          className="card card-enterprise p-5 shadow-sm border-0"
+          style={{ maxWidth: "450px" }}
+        >
+          <div className="text-danger mb-4" style={{ fontSize: "4rem" }}>
+            ⚠️
+          </div>
           <h2 className="h4 fw-bold text-dark mb-3">Something went wrong</h2>
-          <p className="text-muted mb-4">{error || 'The quiz session could not be loaded or has expired.'}</p>
-          <button onClick={() => navigate(-1)} className="btn btn-dark rounded-pill px-5 py-2 fw-bold">Go Back</button>
+          <p className="text-muted mb-4">
+            {error || "The quiz session could not be loaded or has expired."}
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="btn btn-dark rounded-pill px-5 py-2 fw-bold"
+          >
+            Go Back
+          </button>
         </div>
       </div>
-    )
+    );
   }
-
-  const getOptionClass = (key) => {
-    return selectedOption === key ? 'selected' : ''
-  }
-
   return (
     <div
       className="min-vh-100 d-flex flex-column position-relative overflow-x-hidden"
@@ -218,18 +190,23 @@ export default function GamePage() {
         style={{
           backgroundImage: `radial-gradient(#ff4d3d 0.5px, transparent 0.5px)`,
           backgroundSize: "30px 30px",
-          zIndex: 0
+          zIndex: 0,
         }}
       />
 
-      <div className="container py-3 py-md-4 py-lg-5 d-flex flex-column justify-content-between position-relative" style={{ zIndex: 2, maxWidth: '1400px', minHeight: '100dvh' }}>
-
+      <div
+        className="container py-3 py-md-4 py-lg-5 d-flex flex-column justify-content-between position-relative"
+        style={{ zIndex: 2, maxWidth: "1400px", minHeight: "100dvh" }}
+      >
         {/* TOP ROW: Title & Timer */}
         <div>
           <div className="row align-items-center mb-3 mb-md-4 mb-lg-5">
             <div className="col-md-8">
               <div className="d-flex align-items-center gap-3 mb-3">
-                <div className="px-3 py-1 bg-light text-dark fw-bold text-uppercase tracking-widest border-start border-4 border-danger" style={{ fontSize: '0.7rem' }}>
+                <div
+                  className="px-3 py-1 bg-light text-dark fw-bold text-uppercase tracking-widest border-start border-4 border-danger"
+                  style={{ fontSize: "0.7rem" }}
+                >
                   CHALLENGE {currentIndex + 1} OF {questions.length}
                 </div>
               </div>
@@ -253,21 +230,70 @@ export default function GamePage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="mb-0 text-secondary ps-3 border-start border-1 border-success"
-                style={{ fontSize: "clamp(0.9rem, 1.1vw, 1.15rem)", lineHeight: "1.6", maxWidth: "800px" }}
+                style={{
+                  fontSize: "clamp(0.9rem, 1.1vw, 1.15rem)",
+                  lineHeight: "1.6",
+                  maxWidth: "800px",
+                }}
               >
                 {question.scenario}
               </motion.div>
             </div>
 
             <div className="col-md-4 d-flex justify-content-center justify-content-md-end mt-3 mt-md-0">
-              <div className="position-relative d-flex align-items-center justify-content-center bg-white shadow-sm border border-light" style={{ width: "120px", height: "120px", borderRadius: "20px" }}>
-                <svg width="100" height="100" viewBox="0 0 120 120" className="position-absolute">
-                  <circle cx="60" cy="60" r="56" fill="none" stroke="#f8f8f8" strokeWidth="4" />
-                  <circle cx="60" cy="60" r="56" fill="none" stroke="#ff4d3d" strokeWidth="4" strokeLinecap="square" strokeDasharray="351.8" strokeDashoffset={351.8 - (351.8 * timeLeft) / 60} transform="rotate(-90 60 60)" style={{ transition: "stroke-dashoffset 1s linear" }} />
+              <div
+                className="position-relative d-flex align-items-center justify-content-center bg-white shadow-sm border border-light"
+                style={{
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "20px",
+                }}
+              >
+                <svg
+                  width="100"
+                  height="100"
+                  viewBox="0 0 120 120"
+                  className="position-absolute"
+                >
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="56"
+                    fill="none"
+                    stroke="#f8f8f8"
+                    strokeWidth="4"
+                  />
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="56"
+                    fill="none"
+                    stroke="#ff4d3d"
+                    strokeWidth="4"
+                    strokeLinecap="square"
+                    strokeDasharray="351.8"
+                    strokeDashoffset={351.8 - (351.8 * timeLeft) / 60}
+                    transform="rotate(-90 60 60)"
+                    style={{ transition: "stroke-dashoffset 1s linear" }}
+                  />
                 </svg>
                 <div className="text-center">
-                  <div style={{ fontSize: "2.4rem", fontWeight: "900", color: "#111", lineHeight: 1 }}>{timeLeft}</div>
-                  <div className="text-uppercase tracking-widest text-danger fw-bold" style={{ fontSize: "0.5rem" }}>SECONDS</div>
+                  <div
+                    style={{
+                      fontSize: "2.4rem",
+                      fontWeight: "900",
+                      color: "#111",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {timeLeft}
+                  </div>
+                  <div
+                    className="text-uppercase tracking-widest text-danger fw-bold"
+                    style={{ fontSize: "0.5rem" }}
+                  >
+                    SECONDS
+                  </div>
                 </div>
               </div>
             </div>
@@ -302,10 +328,7 @@ export default function GamePage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="d-grid d-grid-custom gap-2 gap-md-3 gap-lg-4"
-              style={{
-                gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-              }}
+              className="game-grid gap-2 gap-md-3 gap-lg-4"
             >
               {question.options.map((option, idx) => {
                 const isSelected = selectedOptions.includes(option.option_key);
@@ -326,24 +349,54 @@ export default function GamePage() {
                       boxShadow: isSelected
                         ? "0 15px 35px rgba(255, 77, 61, 0.3)"
                         : "0 8px 20px rgba(0,0,0,0.04)",
-                      border: isSelected ? "1px solid #ff4d3d" : "1px solid #eeeeee",
+                      border: isSelected
+                        ? "1px solid #ff4d3d"
+                        : "1px solid #eeeeee",
                     }}
                   >
                     {/* Corner Number */}
-                    <div className={`fw-bold ${isSelected ? 'text-white' : 'text-danger'}`} style={{ fontSize: "clamp(0.8rem, 1.5vw, 1.25rem)", opacity: isSelected ? 1 : 0.4, marginBottom: "clamp(8px, 1.5vw, 20px)" }}>
+                    <div
+                      className={`fw-bold ${isSelected ? "text-white" : "text-danger"}`}
+                      style={{
+                        fontSize: "clamp(0.8rem, 1.5vw, 1.25rem)",
+                        opacity: isSelected ? 1 : 0.4,
+                        marginBottom: "clamp(8px, 1.5vw, 20px)",
+                      }}
+                    >
                       {option.option_key}
                     </div>
 
                     {/* Option Text */}
-                    <div className="fw-bold mb-3 option-text" style={{ fontSize: "clamp(0.6rem, 1.2vw, 1.1rem)", lineHeight: "1.25", letterSpacing: "-0.2px" }}>
+                    <div
+                      className="fw-bold mb-3 option-text"
+                      style={{
+                        fontSize: "clamp(0.6rem, 1.2vw, 1.1rem)",
+                        lineHeight: "1.25",
+                        letterSpacing: "-0.2px",
+                      }}
+                    >
                       {option.option_text}
                     </div>
 
                     {/* Selection Indicator Pill */}
                     <div className="mt-auto d-flex align-items-center justify-content-between w-100">
-                      <div style={{ width: "clamp(12px, 2.5vw, 30px)", height: "2px", background: isSelected ? "#fff" : "#ff4d3d", opacity: 0.8 }} />
+                      <div
+                        style={{
+                          width: "clamp(12px, 2.5vw, 30px)",
+                          height: "2px",
+                          background: isSelected ? "#fff" : "#ff4d3d",
+                          opacity: 0.8,
+                        }}
+                      />
                       {isSelected && (
-                        <div className="bg-white text-danger fw-black rounded-circle d-flex align-items-center justify-content-center shadow-sm" style={{ width: "clamp(16px, 1.8vw, 22px)", height: "clamp(16px, 1.8vw, 22px)", fontSize: "clamp(0.5rem, 1vw, 0.65rem)" }}>
+                        <div
+                          className="bg-white text-danger fw-black rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                          style={{
+                            width: "clamp(16px, 1.8vw, 22px)",
+                            height: "clamp(16px, 1.8vw, 22px)",
+                            fontSize: "clamp(0.5rem, 1vw, 0.65rem)",
+                          }}
+                        >
                           {order}
                         </div>
                       )}
@@ -373,16 +426,23 @@ export default function GamePage() {
                   fontWeight: "900",
                   letterSpacing: "2px",
                   fontSize: "clamp(0.8rem, 1.2vw, 1rem)",
-                  background: "#ff4d3d"
+                  background: "#ff4d3d",
                 }}
               >
-                {submitting ? "PROCESSING..." : `CONFIRM ${selectedOptions.length > 1 ? 'DECISIONS' : 'DECISION'}`}
-                <div style={{ width: "20px", height: "1px", background: "#fff" }} />
+                {submitting
+                  ? "PROCESSING..."
+                  : `CONFIRM ${selectedOptions.length > 1 ? "DECISIONS" : "DECISION"}`}
+                <div
+                  style={{ width: "20px", height: "1px", background: "#fff" }}
+                />
               </motion.button>
             )}
           </AnimatePresence>
 
-          <div className="mt-3 text-muted opacity-50 text-uppercase tracking-widest fw-bold" style={{ fontSize: "0.6rem" }}>
+          <div
+            className="mt-3 text-muted opacity-50 text-uppercase tracking-widest fw-bold"
+            style={{ fontSize: "0.6rem" }}
+          >
             Identify your priorities and confirm to proceed
           </div>
         </div>
@@ -390,12 +450,10 @@ export default function GamePage() {
 
       {/* MOBILE RESPONSIVE STYLE OVERRIDE */}
       <style>{`
-        .d-grid-custom {
-          grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-        }
         .game-option-card {
           aspect-ratio: 1 / 1.15;
           min-height: clamp(120px, 18vw, 240px);
+          touch-action: manipulation;
         }
         @media (max-width: 768px) {
           .game-option-card {
@@ -406,5 +464,5 @@ export default function GamePage() {
         .transition-all { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
       `}</style>
     </div>
-  )
+  );
 }

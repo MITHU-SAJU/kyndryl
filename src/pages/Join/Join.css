@@ -1,17 +1,21 @@
 .join-container {
-  height: 100vh;
+  min-height: 100dvh;
+  min-height: 100svh;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 2rem;
 }
 
 .join-card {
-  width: 400px;
+  max-width: 400px;
+  width: min(92%, 400px);
   background: rgba(255,255,255,0.05);
   border: 1px solid cyan;
-  padding: 40px;
+  padding: clamp(1rem, 2.5vw, 2.5rem);
   border-radius: 20px;
   backdrop-filter: blur(10px);
+  box-sizing: border-box;
 }
 
 .join-card h1 {

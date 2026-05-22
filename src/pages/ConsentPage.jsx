@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-
+import { speak, stopAllSpeech } from "../lib/tts";
 
 export default function ConsentPage() {
   const { eventId } = useParams();
@@ -13,74 +13,22 @@ export default function ConsentPage() {
 
   const [agreed, setAgreed] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // TTS Voice Synthesis Greeting
-  const speak = (text) => {
-    const synth = window.speechSynthesis;
-    if (!synth) return;
-
-    try {
-      const performSpeech = (availableVoices) => {
-        synth.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-
-        // Strictly prefer high-quality humanistic FEMALE voices
-        const preferredVoice = availableVoices.find(v => {
-          const name = v.name.toLowerCase();
-          return v.lang.startsWith("en") && (
-            name.includes("female") ||
-            name.includes("samantha") ||
-            name.includes("zira") ||
-            name.includes("aria") ||
-            name.includes("hazel") ||
-            name.includes("susan") ||
-            name.includes("victoria") ||
-            name.includes("tessa") ||
-            name.includes("moira") ||
-            (name.includes("google") && name.includes("english") && !name.includes("male"))
-          ) && !name.includes("male") && !name.includes("david") && !name.includes("mark") && !name.includes("george");
-        }) || availableVoices.find(v => v.lang.startsWith("en") && !v.name.toLowerCase().includes("male") && !v.name.toLowerCase().includes("david") && !v.name.toLowerCase().includes("mark"))
-           || availableVoices[0];
-
-        if (preferredVoice) utterance.voice = preferredVoice;
-        utterance.rate = 0.95;
-        utterance.pitch = 1.02;
-
-        synth.speak(utterance);
-      };
-
-      let voices = synth.getVoices();
-      if (voices.length > 0) {
-        performSpeech(voices);
-      } else {
-        // Wait for voices to load asynchronously
-        synth.onvoiceschanged = () => {
-          const updatedVoices = synth.getVoices();
-          performSpeech(updatedVoices);
-          synth.onvoiceschanged = null; // Clean up
-        };
-      }
-    } catch (e) {
-      console.error("Speech Synthesis Error:", e);
+  // Speak welcome on mount and consent heading on exit
+  useEffect(() => {
+    if (showWelcome) {
+      speak("Welcome to the 60-Second CIO Challenge. Touch to continue.");
+    } else {
+      speak("Consent and Data Usage Acknowledgement");
     }
-  };
-
-  // Speak on welcome screen mount
-
+    return () => {
+      stopAllSpeech();
+    };
+  }, [showWelcome]);
 
   // Handle click to transition from Welcome to Consent card
   const handleWelcomeClick = () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-
-    // 1. Speak welcome message immediately in a female voice
-    speak("Welcome to the sixty second C I O Challenge. Please review and agree to the consent policy to start your challenge.");
-
-    // 2. Wait exactly 3 seconds, then hide welcome screen and show consent card
-    setTimeout(() => {
-      setShowWelcome(false);
-    }, 3000);
+    setShowWelcome(false);
   };
 
   useEffect(() => {
@@ -133,9 +81,7 @@ export default function ConsentPage() {
         <div
           className="container-fluid px-4 px-lg-5 py-4 position-relative"
           style={{ zIndex: 20 }}
-        >
-
-        </div>
+        ></div>
       )}
 
       {/* FULLSCREEN ROBOT WELCOME SCREEN */}
@@ -150,7 +96,7 @@ export default function ConsentPage() {
             className="welcome-screen position-absolute top-0 start-0 w-100 h-100 overflow-hidden d-flex justify-content-center align-items-center"
             style={{
               zIndex: 1000,
-              cursor: isTransitioning ? "default" : "pointer",
+              cursor: "pointer",
               background:
                 "radial-gradient(circle at center, #120404 0%, #000 70%)",
             }}
@@ -187,7 +133,6 @@ export default function ConsentPage() {
               }}
             >
               {/* TOP CURVE */}
-
 
               {/* EYES */}
               <div
@@ -284,17 +229,17 @@ export default function ConsentPage() {
                 style={{
                   position: "absolute",
                   bottom: "5%",
-                  color: isTransitioning ? "#ff9f43" : "#ff4d3d",
+                  color: "#ff4d3d",
                   letterSpacing: "4px",
                   fontSize: "12px",
                   fontWeight: 300,
-                  opacity: 0.8,
-                  textShadow: isTransitioning ? "0 0 15px #ff9f43" : "0 0 12px #ff4d3d",
+                  opacity: 0.9,
+                  textShadow: "0 0 12px #ff4d3d",
                   animation: "blinkText 1.5s infinite",
                   transition: "all 0.4s ease",
                 }}
               >
-                {isTransitioning ? "INITIALIZING CHALLENGE..." : "TOUCH TO CONTINUE"}
+                TOUCH TO CONTINUE
               </div>
             </div>
 
@@ -451,17 +396,15 @@ export default function ConsentPage() {
                       maxWidth: "1100px",
                     }}
                   >
-                    By continuing with this interaction, you consent
-                    to Kyndryl collecting and processing the
-                    information shared by you for the purposes of
-                    event engagement, business communication,
-                    follow-up conversations, marketing outreach,
-                    and sharing relevant insights, solutions,
-                    services, or event-related updates.<br></br>
-                    Your information may be securely stored and
-                    processed by Kyndryl and its authorized
-                    partners in accordance with applicable data
-                    privacy and protection laws.
+                    By continuing with this interaction, you consent to Kyndryl
+                    collecting and processing the information shared by you for
+                    the purposes of event engagement, business communication,
+                    follow-up conversations, marketing outreach, and sharing
+                    relevant insights, solutions, services, or event-related
+                    updates.<br></br>
+                    Your information may be securely stored and processed by
+                    Kyndryl and its authorized partners in accordance with
+                    applicable data privacy and protection laws.
                   </p>
 
                   {/* CONSENT POINTS */}

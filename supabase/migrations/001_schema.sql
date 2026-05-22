@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id UUID REFERENCES events(id),
-    name TEXT NOT NULL,
+    username TEXT NOT NULL,
     company TEXT NOT NULL,
     designation TEXT NOT NULL,
     email TEXT,
@@ -114,7 +114,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE users;
 CREATE OR REPLACE VIEW leaderboard AS
 SELECT 
     u.id as user_id,
-    u.name,
+    u.username as name,
     u.company,
     u.designation,
     gs.total_score,

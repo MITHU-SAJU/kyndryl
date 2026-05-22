@@ -6,14 +6,22 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function check() {
-  const { data, error } = await supabase
+  const { data: events, error: eventError } = await supabase
     .from('events')
-    .select('event_code, title')
+    .select('*')
   
-  if (error) {
-    console.error('Error:', error)
+  console.log('Events in DB:', events)
+
+  const { data: users, error: userError } = await supabase
+    .from('users')
+    .select('*')
+  
+  if (userError) {
+    console.error('Error fetching users:', userError)
   } else {
-    console.log('Events in DB:', data)
+    console.log('Users in DB (Count:', users?.length, '):', users?.slice(0, 10))
+    const matching = users?.filter(u => u.username?.toLowerCase().includes('aarti') || u.name?.toLowerCase().includes('aarti'))
+    console.log('Matching "aarti":', matching)
   }
 }
 
