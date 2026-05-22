@@ -33,15 +33,24 @@ export default function LandingPage() {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
-      // START CAMERA
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-        audio: false,
-      });
+      // START CAMERA WITH ROBUST FALLBACK FOR IOS/IPAD DEVICES
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "user",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        });
+      } catch (err) {
+        console.warn("High-res video constraints failed, falling back to standard video query...", err);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
 
       streamRef.current = stream;
 
