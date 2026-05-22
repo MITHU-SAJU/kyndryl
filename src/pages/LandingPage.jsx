@@ -36,7 +36,7 @@ export default function LandingPage() {
       // START CAMERA
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: "environment",
+          facingMode: "user",
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
