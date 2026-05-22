@@ -20,6 +20,10 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [cameraError, setCameraError] = useState("");
 
+  // Auto-capture countdown state
+  const [countdown, setCountdown] = useState(5);
+  const [autoCaptureActive, setAutoCaptureActive] = useState(false);
+
   // =========================
   // START CAMERA
   // =========================
@@ -56,7 +60,7 @@ export default function LandingPage() {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        
+
         // Native autoplay/playsinline/muted handles rendering perfectly on iOS.
         // We run a safe play() call to trigger it programmatically if possible.
         try {
@@ -98,7 +102,7 @@ export default function LandingPage() {
   }, [startCamera, stopCamera]);
 
   useEffect(() => {
-    speak("Please scan your ID");
+    speak("Scan your name");
     return () => {
       stopAllSpeech();
     };
@@ -212,6 +216,35 @@ export default function LandingPage() {
     }
   };
 
+  // Start auto-capture countdown when camera is ready and active
+  useEffect(() => {
+    if (cameraReady && !loading && !cameraError) {
+      setCountdown(10);
+      setAutoCaptureActive(true);
+    } else {
+      setAutoCaptureActive(false);
+    }
+  }, [cameraReady, loading, cameraError]);
+
+  // Handle countdown interval decrement
+  useEffect(() => {
+    let interval;
+    if (autoCaptureActive && countdown > 0) {
+      interval = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [autoCaptureActive, countdown]);
+
+  // Trigger capture automatically at 0
+  useEffect(() => {
+    if (autoCaptureActive && countdown === 0) {
+      setAutoCaptureActive(false);
+      captureImage();
+    }
+  }, [countdown, autoCaptureActive]);
+
   return (
     <div
       className="min-vh-100 d-flex flex-column overflow-x-hidden position-relative bg-light"
@@ -264,7 +297,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="landing-subtitle">
-                Scan your employee ID card to begin the AI leadership
+                Scan your name to begin the AI leadership
                 experience.
               </p>
 
@@ -272,7 +305,7 @@ export default function LandingPage() {
                 <div className="col-12">
                   <div className="info-card">
                     <div className="info-dot"></div>
-                    Position your ID card clearly
+                    Position your name badge clearly
                   </div>
                 </div>
 
@@ -331,6 +364,41 @@ export default function LandingPage() {
                   muted
                   className="camera-video"
                 />
+
+                {/* AUTO-CAPTURE COUNTDOWN BANNER */}
+                <AnimatePresence>
+                  {autoCaptureActive && countdown > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -20, scale: 0.8 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.8 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="position-absolute start-50 translate-middle-x text-white rounded-pill px-4 py-2 d-flex align-items-center gap-2"
+                      style={{
+                        top: '24px',
+                        zIndex: 30,
+                        background: 'linear-gradient(135deg, #ff4d3d, #ff1f1f)',
+                        border: '1px solid rgba(255, 255, 255, 0.25)',
+                        boxShadow: '0 8px 30px rgba(255, 77, 61, 0.45)',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          backgroundColor: '#fff',
+                          boxShadow: '0 0 10px #fff',
+                          animation: 'pulse 1s infinite alternate'
+                        }}
+                      />
+                      <span className="fw-bold" style={{ fontSize: '0.85rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                        Auto-Capturing in <span style={{ fontSize: '1.15rem', fontWeight: 900 }}>{countdown}s</span>
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* SCAN FRAME */}
                 <div className="scan-frame">

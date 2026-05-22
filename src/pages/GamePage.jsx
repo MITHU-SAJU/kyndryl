@@ -200,7 +200,7 @@ export default function GamePage() {
       >
         {/* TOP ROW: Title & Timer */}
         <div>
-          <div className="row align-items-center mb-3 mb-md-4 mb-lg-5">
+          <div className="row align-items-center mt-5 mb-md-4 mb-lg-5">
             <div className="col-md-8">
               <div className="d-flex align-items-center gap-3 mb-3">
                 <div

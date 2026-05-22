@@ -264,35 +264,7 @@ export default function ResultPage() {
         className="position-relative z-2 text-center px-4 result-card"
         style={{ maxWidth: "clamp(420px, 60vw, 980px)" }}
       >
-        {/* Congratulations Overlay */}
-        <AnimatePresence>
-          {!loading && data && (
-            <motion.div
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.6, opacity: 0 }}
-              transition={{ duration: 0.6, ease: "backOut" }}
-              className="position-absolute top-0 start-50 translate-middle-x text-center"
-              style={{ zIndex: 1060, marginTop: "-4rem", width: "100%" }}
-            >
-              <div
-                style={{
-                  display: "inline-block",
-                  padding: "12px 26px",
-                  borderRadius: 9999,
-                  background: "linear-gradient(90deg,#ff4d3d,#ffc107)",
-                  boxShadow: "0 10px 40px rgba(0,0,0,0.12)",
-                  color: "#fff",
-                  fontWeight: 800,
-                  letterSpacing: "1px",
-                  fontSize: "clamp(1.4rem, 3vw, 2rem)",
-                }}
-              >
-                CONGRATULATIONS!
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
         {/* Animated Check Icon */}
         <motion.div
           initial={{ scale: 0 }}
@@ -337,8 +309,7 @@ export default function ResultPage() {
             maxWidth: "480px",
           }}
         >
-          for sharing your perspective and completing the 60-Second CIO
-          Challenge. Your session has been successfully recorded.
+          for sharing your perspective. Your session has been successfully recorded.
         </p>
 
 

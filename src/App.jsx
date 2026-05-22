@@ -5,13 +5,15 @@ import LandingPage from './pages/LandingPage'
 import ConsentPage from './pages/ConsentPage'
 import GamePage from './pages/GamePage'
 import ResultPage from './pages/ResultPage'
-import DisplayPage from './pages/DisplayPage'
+
 import SectorPage from './pages/Screen/SectorPage'
+import GlobalNav from './components/GlobalNav'
 
 function App() {
   return (
     <Router>
       <Toaster position="top-center" />
+      <GlobalNav />
       <Routes>
         {/* Root Redirect to Entry */}
         <Route path="/" element={<Navigate to="/start/etcio2026" replace />} />
@@ -34,8 +36,6 @@ function App() {
         {/* Result Page */}
         <Route path="/result/:sessionId" element={<ResultPage />} />
 
-        {/* LED Display Page (Big Screen) */}
-        <Route path="/display/:eventId" element={<DisplayPage />} />
 
         {/* Fallback to Display */}
         <Route path="*" element={<Navigate to="/display/etcio2026" replace />} />

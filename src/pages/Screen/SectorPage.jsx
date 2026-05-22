@@ -87,14 +87,7 @@ export default function SectorPage() {
             className="kyndryl-logo"
           />
 
-          {/* SMALL LABEL */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="enterprise-badge"
-          >
-            60 SECOND CIO CHALLENGE
-          </motion.div>
+
         </div>
       </div>
 
