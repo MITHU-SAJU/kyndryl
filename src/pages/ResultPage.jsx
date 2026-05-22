@@ -30,7 +30,7 @@ export default function ResultPage() {
 
         // High quality ElevenLabs congratulatory TTS
         if (result?.user?.username) {
-          speak(` Thank you, ${result.user.username}, for sharing your perspective and completing the 60-Second CIO Challenge.`);
+          speak(` Thank you, ${result.user.username}, for sharing your perspective.`);
         }
       } catch (error) {
         console.error(error);

@@ -17,7 +17,7 @@ export default function ConsentPage() {
   // Speak welcome on mount and consent heading on exit
   useEffect(() => {
     if (showWelcome) {
-      speak("Welcome to the 60-Second CIO Challenge. Touch to continue.");
+      speak("Touch to continue.");
     } else {
       speak("Consent and Data Usage Acknowledgement");
     }
