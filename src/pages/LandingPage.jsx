@@ -56,17 +56,14 @@ export default function LandingPage() {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-
-        await new Promise((resolve) => {
-          videoRef.current.onloadedmetadata = async () => {
-            try {
-              await videoRef.current.play();
-              resolve();
-            } catch (e) {
-              console.error(e);
-            }
-          };
-        });
+        
+        // Native autoplay/playsinline/muted handles rendering perfectly on iOS.
+        // We run a safe play() call to trigger it programmatically if possible.
+        try {
+          await videoRef.current.play();
+        } catch (e) {
+          console.warn("Muted programmatic play failed, falling back to native HTML5 autoplay", e);
+        }
       }
 
       setCameraReady(true);
