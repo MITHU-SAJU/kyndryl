@@ -768,3 +768,72 @@ html, body, #root {
     margin-bottom: 1.5rem !important;
   }
 }
+
+/* ==========================================================================
+   IPAD PRO LANDSCAPE & NATIVE PWA FEEL OPTIMIZATIONS
+   ========================================================================== */
+
+/* Apply global standalone properties to make PWA behave like a native iOS App */
+@media (display-mode: standalone) {
+  body {
+    /* Prevent bouncing and elastic scrolling on iOS */
+    position: fixed;
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+    /* Add safe areas to layout */
+    padding-top: env(safe-area-inset-top, 20px);
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    background-color: #111111;
+  }
+  
+  #root {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Safe areas layout fallback for index pages */
+.min-dvh-100 {
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding-left: max(15px, env(safe-area-inset-left));
+  padding-right: max(15px, env(safe-area-inset-right));
+}
+
+/* Touch targets optimization */
+button, 
+.btn, 
+.option-card, 
+.sector-card, 
+a {
+  min-height: 44px; /* Apple iOS Human Interface Guidelines standard */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  position: relative;
+}
+
+/* Touch feedback for buttons (mimicking native tap response) */
+button:active, 
+.btn:active, 
+.option-card:active, 
+.sector-card:active {
+  transform: scale(0.97) !important;
+  opacity: 0.9 !important;
+  transition: transform 0.08s ease, opacity 0.08s ease !important;
+}
+
+/* Form input touch optimization */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+select {
+  font-size: 16px !important; /* Prevents auto-zoom behavior on focus in iOS Safari */
+  min-height: 48px;
+}
+
